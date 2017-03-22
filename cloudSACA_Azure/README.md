@@ -1,6 +1,3 @@
-README:
--------
-
 Pre-Installed packages:
 ------------------------
 
