@@ -1,7 +1,7 @@
 cloud-based Parallel Suffix Array Construction Algorithm based on MPI 
 =====
 
-The suffix array is currently the best choice for indexing genomics data, because of its efficiency and large number of applications. cloudSACA is a solution that automates the establishment of a computer cluster in a cloud and automatically constructs the suffix array in a distributed fashion over the cluster nodes. This has the advantage of encapsulating all set-up details and execution of the algorithm. The distributed nature of the algorithm we use overcomes the problem that arises when the user wishes, due to cost issues, to use low memory machines in the cloud. cloudSACA is used to construct the suffix array on the cloud in a distributed manner. Currently we support only two providers; AWS and Azure. In the package we provide 4 implementations for suffix array construction algorithms:
+The suffix array is currently the best choice for indexing genomics data, because of its efficiency and a large number of applications. cloudSACA is a solution that automates the establishment of a computer cluster in a cloud and automatically constructs the suffix array in a distributed fashion over the cluster nodes. This has the advantage of encapsulating all set-up details and execution of the algorithm. The distributed nature of the algorithm we use overcomes the problem that arises when the user wishes, due to cost issues, to use small memory machines in the cloud. cloudSACA is used to construct the suffix array on the cloud in a distributed manner. Currently, we support only two providers; AWS and Azure. In the package we provide 4 implementations for suffix array construction algorithms:
 
 1. Futamura-Aluru-Kurtz Algorithm.
 2. Naive implementations for Kulla-Sanders Algorithm.
@@ -32,7 +32,7 @@ To install and run pSACA on local infrastrucrure, you should Install and configu
 
 
 
-## Installing, Testing, and Running
+## Installing and Running
 
 #### Clone the project to your local repository:
 ```
@@ -51,10 +51,6 @@ cd pSACA
 ```
 mpirun -np <no_cores> --hostfile <path-to-host-file> <executable> <reference-file> [options]
 ```
-
-
-Output file format: binary file which contains the suffix array of the input file. 
-
 
 #### Implemented options:
 ```
