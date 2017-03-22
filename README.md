@@ -12,7 +12,6 @@ The suffix array is currently the best choice for indexing genomics data, becaus
 
 * Metwally, Ahmed A., Ahmed H. Kandil, and Mohamed Abouelhoda. "Distributed suffix array construction algorithms: Comparison of two algorithms." In Biomedical Engineering Conference (CIBEC), 2016 8th Cairo International, pp. 27-30. IEEE, 2016.
 * Abdelhadi, Ahmed, A. H. Kandil, and Mohamed Abouelhoda. "Cloud-based parallel suffix array construction based on MPI." In Biomedical Engineering (MECBME), 2014 Middle East Conference on, pp. 334-337. IEEE, 2014.
-</br>
 
 
 # Getting Started
@@ -27,8 +26,6 @@ To install and run pSACA on local infrastructure, you should Install and configu
 * openmpi-common 
 * libopenmpi1.3 
 * libopenmpi-dev (Not actually needed for a slave node.)
-
-</br>
 
 
 
