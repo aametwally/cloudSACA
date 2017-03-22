@@ -46,8 +46,6 @@ cd pSACA
 ./install.sh
 ```
 
-</br>
-
 
 ## Running pSACA on FASTA or txt reference file:
 ```
