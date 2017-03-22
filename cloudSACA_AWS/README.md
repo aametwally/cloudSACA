@@ -1,7 +1,3 @@
-Author: Ahmed Abdelhadi
-Special Thanks to Mohamed Kalioby for his support (The main developer of EHPC package)
-
-
 A) To create a cluster:
 1- On demand Cluster:
 ./cloudSACA_AWS.sh --create <options>
@@ -24,3 +20,6 @@ Examples:
 
 2- Creating spot request Cluster:
 ./cloudSACA_EHPC.sh --spot-request -r=EU1 --name=hadympi -ami=ami-fc4cad8b -pk=/home/hady/Desktop/AWS/pk-KLDQBZR7MLEDGVRSSETGH4KBXWTLGSGO.pem -cert=/home/hady/Desktop/AWS/cert-KLDQBZR7MLEDGVRSSETGH4KBXWTLGSGO.pem -kp=hadyuseast -sg=sg-dd19f0b2 -t=m1.medium -n=2 --price=0.2
+
+
+Special Thanks to Mohamed Kalioby for his support (The main developer of EHPC package)
