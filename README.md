@@ -8,7 +8,7 @@ The suffix array is currently the best choice for indexing genomics data, becaus
 3. Merge implementations for Kulla-Sanders Algorithm.
 4. Optimized implementations for Kulla-Sanders Algorithm.
 
-### Publication:
+### Publications:
 
 * Metwally, Ahmed A., Ahmed H. Kandil, and Mohamed Abouelhoda. "Distributed suffix array construction algorithms: Comparison of two algorithms." In Biomedical Engineering Conference (CIBEC), 2016 8th Cairo International, pp. 27-30. IEEE, 2016.
 * Abdelhadi, Ahmed, A. H. Kandil, and Mohamed Abouelhoda. "Cloud-based parallel suffix array construction based on MPI." In Biomedical Engineering (MECBME), 2014 Middle East Conference on, pp. 334-337. IEEE, 2014.
