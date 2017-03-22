@@ -1,0 +1,214 @@
+  978  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+  979  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate757-0
+  994  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+  996  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+  998  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+  999  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate769-0
+ 1001  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1003  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1004  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate884-0
+ 1007  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1009  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1011  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate836-0
+ 1012  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1019  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1020  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1022  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1023  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate966-0
+ 1024  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1025  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate576-0
+ 1027  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate576-0
+ 1029  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1030  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate196-0
+ 1032  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate196-0
+ 1034  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate196-0
+ 1055  history |grep python
+ 1056  python azure-client.py --create --number=2 --size=Small --region=WUS
+ 1057  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1104  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1136  python azure-client.py --create --number=2 --size=Small --region=WUS
+ 1137  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1173  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1175  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1208  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1210  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1212  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1220  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1262  python ssh.py 
+ 1264  python ssh.py 
+ 1303  history | grep python
+ 1304  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1308  python ssh.py 
+ 1311  python ssh.py 
+ 1313  python ssh.py 
+ 1315  python ssh.py 
+ 1332  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1334  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1336  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1345  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1348  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1349  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1351  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1352  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1354  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1355  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1358  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1359  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1365  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1369  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate704-0
+ 1370  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate704-0.cloudapp.net
+ 1371  python ehpc-client.py --installPBS --MasterNode='ahmed-Sate704-0.cloudapp.net'
+ 1372  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1373  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate985-0.cloudapp.net
+ 1375  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate985-0.cloudapp.net
+ 1377  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate985-0.cloudapp.net
+ 1380  python ehpc-client.py --installPBS --MasterNode=ssh  -i keys/mycert.pem ehpcuser@ahmed-Sate985-0.cloudapp.netahmed-Sate704-0.cloudapp.net
+ 1387  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1391  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1392  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1394  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1396  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1398  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1400  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1402  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1404  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1406  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate451-0.cloudapp.net
+ 1440  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1441  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1442  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1447  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1456  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1525  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate344-0.cloudapp.net
+ 1526  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1527  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1528  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate742-0.cloudapp.net 
+ 1529  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1530  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1531  python ehpc-client.py --installPBS --MasterNode=ahmed-Sate256-0.cloudapp.net
+ 1547  unzip -r python-bidi-master.zip 
+ 1548  unzip python-bidi-master.zip 
+ 1550  cd python-bidi-master/
+ 1557  python setup.py 
+ 1562  python
+ 1566  python arabic_Wrapper_Pharmacy.py 
+ 1568  python arabic_Wrapper_Pharmacy.py 
+ 1572  python arabic_Wrapper_Pharmacy.py 
+ 1573  python
+ 1574  python arabic_Wrapper_Pharmacy.py 
+ 1576  xs mpcabd-python-arabic-reshaper-552f3f4
+ 1578  cd mpcabd-python-arabic-reshaper-552f3f4/
+ 1581  python file.py 
+ 1584  python arabic_Wrapper_Pharmacy.py 
+ 1586  python arabic_Wrapper_Pharmacy.py 
+ 1588  python arabic_Wrapper_Pharmacy.py 
+ 1590  python arabic_Wrapper_Pharmacy.py 
+ 1595  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1628  python ehpc-client.py 
+ 1635  python ehpc-client.py 
+ 1636  python ehpc-client.py --storageaccount --label=ahmedstr --region=WUS
+ 1637  python ehpc-client.py 
+ 1638  python ehpc-client.py --storageaccount --label=ahmedstr --region=WUS
+ 1639  python ehpc-client.py --storageaccount --label=ahmedstr --region
+ 1640  python ehpc-client.py --storageaccount --label=ahmedstr 
+ 1641  python ehpc-client.py --storageaccount --label=ahmedstr --region=
+ 1642  python ehpc-client.py --storageaccount --label=ahmedstr --region=
+ 1643  python ehpc-client.py --storageaccount --labelahmedstr --region=WUS
+ 1644  python ehpc-client.py --storageaccount --label=ahmedstr --region=WUS
+ 1646  history | grep python
+ 1647  python ehpc-client.py --create --number=2 --size=Small --region=WUS 
+ 1648  python ehpc-client.py --create --number=2 --size=Small --region
+ 1649  python ehpc-client.py --create --number=2 --size=Small --region=WUS 
+ 1656  python ehpc-client.py --storageaccount --label=ahmedstr --region=WUS
+ 1657  python ehpc-client.py 
+ 1658  python ehpc-client.py --delete_str_account=ahmedstr
+ 1659  python ehpc-client.py 
+ 1660  python ehpc-client.py --delete_str_account=ahmedstr
+ 1661  python ehpc-client.py --delete_str_account
+ 1662  python ehpc-client.py --delete_str_account=ahmedstr
+ 1667  python ehpc-client.py --delete_str_account=ahmedstr
+ 1668  python ehpc-client.py --storageaccount --label=ahmedstr --region=WUS
+ 1669  python ehpc-client.py --delete_str_account=ahmedstr
+ 1670  python ehpc-client.py --storageaccount --label=ahmed --region=WUS
+ 1671  python ehpc-client.py --storageaccount --label=ahmedaaaa --region=WUS
+ 1673  python ehpc-client.py --delete_str_account=ahmedstraaaa
+ 1675  python ehpc-client.py --delete_str_account=ahmedstr
+ 1676  python ehpc-client.py --delete_str_account=ahmedaaaa
+ 1677  python ehpc-client.py 
+ 1678  python ehpc-client.py --list_storage_accounts
+ 1679  python ehpc-client.py 
+ 1680  python ehpc-client.py --list_storage_accounts
+ 1681  python ehpc-client.py --list_storage_key=portalvhdshwjjzg846c0dj 
+ 1685  python ehpc-client.py --list_storage_key=portalvhdshwjjzg846c0dj 
+ 1693  python
+ 1698  python key.py 
+ 1705  python ehpc-client.py --list_storage_key=portalvhdshwjjzg846c0dj
+ 1707  python ehpc-client.py 
+ 1721  python ehpc-client.py --list_storage_key=portalvhdshwjjzg846c0dj
+ 1723  python ehpc-client.py 
+ 1726  python ehpc-client.py 
+ 1727  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj
+ 1728  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj 
+ 1729  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj
+ 1730  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer --permission=of
+ 1731  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer --permission=off
+ 1732  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1 --permission=Blob
+ 1733  python ehpc-client.py 
+ 1734  python ehpc-client.py --delete_str_container --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1
+ 1735  python ehpc-client.py  ehpc-client.py --delete_str_container --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1
+ 1736  python ehpc-client.py --delete_str_container --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1
+ 1739  python ehpc-client.py --delete_str_container --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1
+ 1740  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1 --permission=Blob
+ 1741  python ehpc-client.py --delete_str_container --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1
+ 1751  python ehpc-client.py --list_str_container --account_name=portalvhdshwjjzg846c0dj
+ 1752  python ehpc-client.py --list_str_containers --account_name=portalvhdshwjjzg846c0dj
+ 1754  python ehpc-client.py --list_str_containers --account_name=portalvhdshwjjzg846c0dj
+ 1758  python ehpc-client.py --list_str_containers --account_name=portalvhdshwjjzg846c0dj
+ 1763  python ehpc-client.py --list_str_containers --account_name=portalvhdshwjjzg846c0dj
+ 1772  python upload.py 
+ 1775  python upload.py 
+ 1776  python ehpc-client.py 
+ 1777  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile --file_path=/home/ahmed/Desktop/key.py --account_name=portalvhdshwjjzg846c0dj
+ 1778  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile --file_path=/home/ahmed/Desktop/death-note-original-soundtrack---11.-l%26%25252339\;s-theme-b-\(a.-lishtva\).mp3  --account_name=portalvhdshwjjzg846c0dj
+ 1779  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile --file_path=/home/ahmed/Desktop/key.py --account_name=portalvhdshwjjzg846c0dj
+ 1780  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile --file_path= /home/ahmed/Desktop/azure/ --account_name=portalvhdshwjjzg846c0dj
+ 1781  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile --file_path=/home/ahmed/Desktop/BloodBandk_map.txt --account_name=portalvhdshwjjzg846c0dj
+ 1782  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile2 --file_path=/home/ahmed/Desktop/BloodBandk_map.txt --account_name=portalvhdshwjjzg846c0dj
+ 1783  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile2 --file_path=/home/ahmed/Desktop/ffff.mp4 --account_name=portalvhdshwjjzg846c0dj
+ 1784  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile3 --file_path=/home/ahmed/Desktop/ffff.mp4 --account_name=portalvhdshwjjzg846c0dj
+ 1785  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile2 --file_path=/home/ahmed/Desktop/BloodBandk_map.txt --account_name=portalvhdshwjjzg846c0dj
+ 1786  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --blob_name=myfile3 --file_path=/home/ahmed/Desktop/ffff.mp4 --account_name=portalvhdshwjjzg846c0dj
+ 1787  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --file_path=/home/ahmed/Desktop/ffff.mp4 --account_name=portalvhdshwjjzg846c0dj
+ 1788  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --file_path=/home/ahmed/Desktop/output.txt --account_name=portalvhdshwjjzg846c0dj
+ 1789  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --file_path=/home/ahmed/Desktop/Song.zip --account_name=portalvhdshwjjzg846c0dj
+ 1800  python ff.py 
+ 1801  python hospitalWrapper.py 
+ 1802  python dentistWrapper.py 
+ 1808  python labWrapper.py 
+ 1812  python
+ 1814  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --file_path= /home/ahmed/Desktop/egypt\ drug\ index\ price\ \&\ pack.rar --account_name=portalvhdshwjjzg846c0dj
+ 1817  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --file_path= /home/ahmed/Desktop/egypt\ drug\ index\ price\ \&\ pack.rar --account_name=portalvhdshwjjzg846c0dj
+ 1818  python ehpc-client.py --uploadBlob --container_name=myblobcontainer --file_path=/home/ahmed/Desktop/Song.zip --account_name=portalvhdshwjjzg846c0dj
+ 1819  python  ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer1 --permission=Blob
+ 1824  history | python
+ 1825  history | grep python
+ 1826  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1858  python /home/ahmed/Desktop/ehpcazure/ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmed-Sate186 --permission=off
+ 1860  python /home/ahmed/Desktop/ehpcazure/ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmed-Sate186 --permission=off
+ 1861  python /home/ahmed/Desktop/ehpcazure/ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedSate186 --permission=off
+ 1862  python /home/ahmed/Desktop/ehpcazure/ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedSate186 --permission=Blob
+ 1863  history | grep python
+ 1864  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedcontainer222 --permission=off
+ 1865  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedSate186 --permission=Blob
+ 1866  python ehpc-client.py --storagecontainer --account_name=portalvhdshwjjzg846c0dj --container_name=ahmedsate186 --permission=Blob
+ 1905  python SendFile.py 192.168.167.143 file.txt
+ 1908  python SendFile.py 192.168.167.143 file.txt 
+ 1914  python ehpc-client.py --create --number=1 --size=Small --region=WUS
+ 1923  python ehpc-client.py --create --number=2 --size=Small --region=WUS
+ 1924  python /home/ahmed/Desktop/ehpcazure/SendFile.py ahmed-Sate848-0.cloudapp.net
+ 1925  python /home/ahmed/Desktop/ehpcazure/SendFile.py ahmed-Sate848-0.cloudapp.net /home/ahmed/Desktop/ehpcazure/keys/AzureCertificat.publishsettings /home/ehpcuser/ehpcazure/keys/AzureCertificat.publishsettings
+ 1945  python ehpc-client.py --uploadFile --filePath=/home/ahmed/Desktop/untitled --outputDirectory=/home/ahmed/Desktop/ --MachineID=192.168.167.143
+ 1948  python ehpc-client.py --uploadFile --filePath=/home/ahmed/Desktop/untitled --outputDirectory=/home/ahmed/Desktop/ --MachineID=ahmed-Sate848-0.cloudapp.net
+ 1950  python ehpc-client.py --uploadFile --filePath=/home/ahmed/Desktop/untitled --outputDirectory=/home/ahmed/Desktop/ --MachineID=ahmed-Sate848-0.cloudapp.net
+ 1970  python send.py 
+ 1973  history | grep python
+ 1974  history | grep python > history

@@ -1,0 +1,118 @@
+#! /usr/bin/python
+import sys,os,simplejson,subprocess,EBS,prettytable
+region=""
+zone=""
+pkfile=""
+certfile=""
+format="table"
+confName=""
+size=""
+id=""
+snapshotID=""
+
+def getUserAWSConf(path):
+	global mode,logFile,conf,region,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,mainNodeType,computeNodesType
+	global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,nfsNewVolume,nfsAttahVolume
+
+	conf = ConfigParser.RawConfigParser()
+	conf.read(path)
+	dict={}
+	dict["pkeyfile"]=conf.get('aws','pkey')
+	pkfile=dict["pkeyfile"]
+	dict["certfile"]=conf.get('aws','cert')
+	certfile=dict["certfile"]
+	dict["accessKey"]=conf.get('aws','accessKey')
+	accessKey=dict["accessKey"]
+	dict["secretKey"]=conf.get('aws','secretKey')
+	secretKey=dict["secretKey"]
+	return dict
+
+if __name__=="__main__":
+	mode=sys.argv[1]
+	for arg in sys.argv[2:]:
+		if "--conf" in arg:
+			confName=arg.split("=")[1]
+			getUserAWSConf(mainPath+"conf/"+confName+".conf")
+		if "--private-Key" in arg or "-pk=" in arg:
+			pkfile=arg.split("=")[1]
+		elif "--certificate" in arg or "-cert=" in arg:
+			certfile= arg.split("=")[1]
+		elif "--region" in arg or "-r=" in arg:
+			region=arg.split("=")[1]
+		elif "--zone" in arg or "-z=" in arg:
+			zone=arg.split("=")[1]
+		elif "--format" in arg or "-f=" in arg:
+			format=arg.split("=")[1]
+		elif "--size" in arg or "-s=" in arg:
+			size=arg.split("=")[1]
+		elif "-id" in arg:
+			id=arg.split("=")[1]
+		elif "--from-snapshot" in arg or "-snap=" in arg:
+			snapshotID=arg.split("=")[1]
+		else:
+			print "unrecognized arg: "  +arg
+			exit(-1)
+	
+	if region=="":
+		print "Region is required for all commands"
+		exit(1)
+	if pkfile=="":
+		print "Private Key file is required for all commands"
+		exit(2)
+	if certfile=="":
+		print "X. 509 certificate file is required for all commands"
+		exit(3)
+	if snapshotID!="" and size!="":
+		print "Either --from-snapshot(-snap) or --size (-s) can appear in input parameters"
+		exit(4)
+	if mode=="--lst-zones":
+		res=EBS.getAllZones(pkfile,certfile,region)
+		if format=="table":
+			res=simplejson.loads(res)
+			
+			x = prettytable.PrettyTable(["Zone"])
+			x.set_field_align("Zone", "l") # Left align city names
+			for z in res:
+				x.add_row([z])
+			print x
+		else:
+			print simplejson.dumps(res)
+	elif mode=="--lst-avaliable-volumes":
+		if zone=="":
+			print "Zone is required for --lst-avaliable-volume"
+			exit(-1)
+		else:
+			res=simplejson.loads(EBS.avaVolumesZone(pkfile,certfile,region,zone))
+			if format=="table":
+				x = prettytable.PrettyTable(["volume ID", "Name", "size","snapshot-id", "Created at"])
+				
+				x.set_field_align("volume ID", "l") # Left align city names
+				for row in res:
+					name="-----"
+					if "name" in row.keys():
+						name=row["name"]
+					snap="------"
+					if "snapshot-id" in row.keys():
+						snap=row["snapshot-id"]
+					x.add_row([row["id"],name,row["size"],snap,row["created_on"]])
+					
+				print x
+			else:
+				print simplejson.dumps(res)
+	elif mode=="--create-volume":
+		if zone=="":
+			print "--zone (-z) is required for --create-volume"
+			exit(-1)
+		if snapshotID=="" and  size=="":
+			print "--size (-s) or --from-snapshot(-snap) is required when creating a new volume"
+			exit(-2)
+		if snapshotID!="":
+			print EBS.createVolume(pkfile,certfile,region,zone,snapshotID=snapshotID)
+		else:
+			print EBS.createVolume(pkfile,certfile,region,zone,size)
+			
+	elif mode=="--delete-volume":
+		if id=="":
+			print "-id is required for --delete-volume"
+		else:
+			print EBS.deleteVolume(pkfile,certfile,region,id)		

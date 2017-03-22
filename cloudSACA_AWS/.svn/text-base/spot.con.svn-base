@@ -1,0 +1,1 @@
+{"name": "HPC-cloud-0", "s3": ["", "/s3", "/tmp"], "region": "EU1", "confName": "", "sk": "", "cert": "/home/mohamed/amazon/cert/cert-P6PT3F2BYETAHTAQHQXBZYI7EZZ6XYV6.pem", "nfs": [false, "/nfs", "", "/dev/sdf", "0"], "pk": "/home/mohamed/amazon/cert/pk-P6PT3F2BYETAHTAQHQXBZYI7EZZ6XYV6.pem", "requests": ["sir-7147fc07"], "ak": ""}

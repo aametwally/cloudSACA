@@ -1,0 +1,2 @@
+/home/hady/Dropbox/pSACA/Kurtz/KurtzCode/cloudSACA_EHPC_v1.1/EC2 /home/hady/Desktop/NU_AWS/pk-P6PT3F2BYETAHTAQHQXBZYI7EZZ6XYV6.pem /home/hady/Desktop/NU_AWS/cert-P6PT3F2BYETAHTAQHQXBZYI7EZZ6XYV6.pem EU1 --spot-reserve 0.2 sg-20df9957 cloudMEM m1.xlarge 4 n16-0 ami-8e23cdf9
+request ids: []

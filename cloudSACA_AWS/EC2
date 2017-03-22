@@ -1,0 +1,272 @@
+#!/bin/bash
+KeysLocation=""
+amiID=""
+export EC2_HOME="${PWD}/ec2-api-tools-1.3-62308/";
+export EC2_PRIVATE_KEY="$1";
+export EC2_CERT="$2";
+#export JAVA_HOME="/usr/lib/jvm/java-6-sun";
+export JAVA_HOME="/usr/lib/jvm/java-7-oracle/";
+IP=""
+InstanceID=""
+status=""
+LocalIP=""
+PublicDNS=""
+
+function quit
+{
+	EC2_HOME=${EC2_HOME}
+	r=$EC2_HOME/bin/ec2-release-address $IP
+	result=$($r)
+}
+
+function assosiateIP
+{
+	EC2_HOME=${EC2_HOME}
+	r="$EC2_HOME/bin/ec2-associate-address -i $1 $2"
+	result=$($r)
+	sleep 10
+	echo $2
+}
+
+function parseInstanceData
+{
+	args=("$@")
+	if [ ${args[4]} = "INSTANCE" ]; then
+		LocalIP=${args[18]}
+		PublicDNS=${args[7]}
+	elif [ ${args[3]} = "INSTANCE" ]; then
+		LocalIP=${args[17]}
+		PublicDNS=${args[6]}
+	fi
+}
+
+function parseInstanceID {
+args=("$@")
+InstanceID=${args[5]}
+}
+
+function getLocalIP {
+	args=("$@")
+	echo ${args[18]}
+}
+
+function getStatus {
+	args=("$@")
+	if [ ${args[4]} = "INSTANCE" ]; then
+		status=${args[9]}
+		echo ${args[9]}
+	elif [ ${args[3]} = "INSTANCE" ]; then
+		status=${args[8]}
+		echo ${args[8]}
+	fi
+}
+
+function allocateIP {
+	EC2_HOME=${EC2_HOME}
+	r=$EC2_HOME/bin/ec2-allocate-address
+	result=$($r)
+	ins=0
+	#echo $result
+for word in $result
+do
+	if [ "$word" = "ADDRESS" ]; then
+		#echo $word
+		ins=1
+		continue
+	fi
+	if [ $ins = 1 ]; then
+		IP=$word
+#		echo "IP: "$IP
+		break
+	fi
+done
+}
+
+if [ "$3" = "EU1" -o  "$3" = "eu-west-1" -o "$3" = "EUW1" ]; then
+#		echo "EU"
+        export EC2_URL="https://ec2.eu-west-1.amazonaws.com"
+elif [  "$3" = "APS1" -o "$3" = "ap-southeast-1" ]; then
+#		echo "South East"
+        export EC2_URL="https://ec2.ap-southeast-1.amazonaws.com"
+elif [ "$3" = "USW1" -o "$3" = "us-west-1" ]; then
+#		echo "US West"
+        export EC2_URL="https://ec2.us-west-1.amazonaws.com"
+elif [ "$3" = "USW2" -o "$3" = "us-west-2" ]; then
+#		echo "US West 2"
+        export EC2_URL="https://ec2.us-west-2.amazonaws.com"
+elif [ "$3" = "SAE1" -o "$3" = "sa-east-1" -o "$3" = "SA1" ]; then
+#		echo "Brazil"
+        export EC2_URL="https://ec2.sa-east-1.amazonaws.com"
+elif [ "$3" = "APN1" -o "$3" = "ap-northeast-1" ]; then
+#		echo "North Pacific"
+        export EC2_URL="ec2.ap-northeast-1.amazonaws.com"
+elif [ "$3" = "USE1" -o "$3" = "us-east-1" ]; then
+#		echo "US East"	
+        export EC2_URL="https://ec2.us-east-1.amazonaws.com"
+else
+	echo "This is region is not supported."
+	exit 1
+fi
+
+if [ "$4" == "--create" ]; then
+	instanceType=""
+	echo "Starting EC2 instance.............."
+	echo "$#"
+	#if [ "$#" == "9" ]; then
+	img="${EC2_HOME}bin/ec2-run-instances $9 -k $7 -g $8 -t $5 -n $6 ${10}" 
+	#else
+	#	img="${EC2_HOME}bin/ec2-run-instances $amiID -k $7 -g $8 -t $5 -n $6" 
+	#fi
+	echo $img
+	#exit
+	instance=$($img)
+			
+	echo  $instance 
+	exit 0
+	i=0
+
+elif [ "$4" == "--details" ]; then
+ 	while [ "$i"=="0" ];
+	do
+	#echo "Waiting the instance to run........"
+	IP=$(${EC2_HOME}bin/ec2-describe-instances $5)
+	echo $IP
+	getStatus $IP 
+	if [ "$status" = "running" ]; then
+		parseInstanceData $IP
+		i=1
+		echo "URL = '$PublicDNS'"
+		echo "Private IP = $LocalIP"	
+		break
+	fi
+	done
+
+elif [ "$4" == "--terminate" ]; then
+	echo "Terminating EC2 instance.............."
+	img="${EC2_HOME}bin/ec2-terminate-instances $5" 
+	echo $($img)
+	
+elif [ "$4" == "--keypairs" ]; then
+        img="${EC2_HOME}bin/ec2-describe-keypairs"
+        echo $($img)
+
+elif [ "$4" == "--groups" ]; then
+        img="${EC2_HOME}bin/ec2-describe-group"
+        echo "$($img)"
+
+elif [ "$4" == "--spot-reserve" ]; then
+	img="${EC2_HOME}bin/ec2-request-spot-instances ${11} -p $5 -g $6 -k $7 -t $8 -n $9 -launch-group ${10}"
+	echo  "Hello: $img"
+    echo "$($img)"
+elif [ "$4" == "--spot-cancel" ]; then
+	img="${EC2_HOME}bin/ec2-cancel-spot-instance-requests $5 "
+	#echo  "Hello: $img"
+    echo "$($img)"
+elif [ "$4" == "--spot-descp" ]; then
+	img="${EC2_HOME}bin/ec2-describe-spot-instance-requests $5"
+    echo "$($img)"
+
+elif [ "$4" == "--authorize" ]; then
+#	img="${EC2_HOME}bin/ec2-authorize $5 -p 22 -P tcp"
+#	echo "$($img)"
+	
+	img="${EC2_HOME}bin/ec2-authorize $5 -p 80 -P tcp"
+	echo $img
+        echo "$($img)"
+	
+	img="${EC2_HOME}bin/ec2-authorize $5 -p 5000 -P tcp"
+        echo "$($img)"
+	
+	img="${EC2_HOME}bin/ec2-authorize $5 -p 15000-15999 -P tcp"
+        echo "$($img)"
+
+	img="${EC2_HOME}bin/ec2-authorize $5 -p 111 -P tcp"
+        echo "$($img)"
+
+        img="${EC2_HOME}bin/ec2-authorize $5 -p 2049 -P tcp"
+        echo "$($img)"
+
+	img="${EC2_HOME}bin/ec2-authorize $5 -p 15000-15999 -P udp"
+        echo "$($img)"
+
+        img="${EC2_HOME}bin/ec2-authorize $5 -p 111 -P udp"
+        echo "$($img)"
+
+        img="${EC2_HOME}bin/ec2-authorize $5 -p 2049 -P udp"
+        echo "$($img)"
+
+elif [ "$4" == "--create-group" ]; then
+        img="${EC2_HOME}bin/ec2addgrp $5 -d $6"
+        echo "$($img)"
+
+elif [ "$4" == "--desc-group" ]; then
+        img="${EC2_HOME}bin/ec2-describe-group $5"
+        echo "$($img)"
+elif [ "$4" == "--zone" ]; then
+         IP=$(${EC2_HOME}bin/ec2-describe-instances $5)
+         parseInstanceData $IP
+         echo "$zone"
+elif [ "$4" == "--attach" ]; then
+        IP=$(${EC2_HOME}bin/ec2-attach-volume $5 -i $6 -d $7)
+        echo $IP
+elif [ "$4" == "--info" ]; then
+        while [ "$i"=="0" ];
+        do
+        index=1
+        IDs=""
+        shift
+        shift
+        for i in "$@"
+        do
+                IDs=$IDs" "$i
+                shift
+        done
+        IP=$(${EC2_HOME}bin/ec2-describe-instances $IDs)
+#        getStatus $IP
+#        if [ "$status" = "running" ]; then
+               echo $IP                
+               break
+#       fi
+        done
+elif [ "$4" == "--volume" ]; then
+        IP=$(${EC2_HOME}bin/ec2-describe-volumes $5)
+        echo $IP
+elif [ "$4" == "--create-volume" ]; then
+        IP=$(${EC2_HOME}bin/ec2-create-volume --size $5 --availability-zone $6)
+        echo $IP
+elif [ "$4" == "--delete-volume" ]; then
+        IP=$(${EC2_HOME}bin/ec2-delete-volume $5)
+        echo $IP
+  
+      
+elif [ "$4" == "--create-vol-from-snapshot" ]; then
+        IP=$(${EC2_HOME}bin/ec2-create-volume --snapshot $5 --availability-zone $6)
+        echo $IP
+
+elif [ "$4" == "--zones" ]; then
+        img="${EC2_HOME}bin/ec2-describe-availability-zones"
+        echo "$($img)"
+elif [ "$4" == "--ava-volumes" ]; then
+        img="${EC2_HOME}bin/ec2-describe-volumes --filter status=available"
+        echo "$($img)"
+elif [ "$4" == "--ava-volumes-zone" ]; then
+        img="${EC2_HOME}bin/ec2-describe-volumes --filter availability-zone=$5 --filter status=available"
+        #echo $img
+        echo "$($img)"
+elif [ "$4" == "--create-tag" ]; then
+        img="${EC2_HOME}bin/ec2-create-tags $5 --tag $6"
+        #echo $img
+        echo "$($img)"
+
+
+else
+	echo "Unsupport mode $4"
+fi
+
+#allocateIP
+#echo "Instance ID: " $InstanceID
+#echo "IP:" $IP
+#InstanceID="i-29bf405f"
+#IP="46.137.110.148"
+#assosiateIP $InstanceID $IP
+#echo $result

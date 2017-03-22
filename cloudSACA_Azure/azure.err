@@ -1,0 +1,17 @@
+Tue Apr 08 2014 00:00:23 GMT+0200 (EET):
+{ [Error: ENOENT, no such file or directory 'keys/ssh/my_key_20121025.pem']
+  errno: 34,
+  code: 'ENOENT',
+  path: 'keys/ssh/my_key_20121025.pem',
+  syscall: 'open' }
+Error: ENOENT, no such file or directory 'keys/ssh/my_key_20121025.pem'
+    at Object.fs.openSync (fs.js:427:18)
+    at Object.fs.readFileSync (fs.js:284:15)
+    at loadSshCert (/usr/local/lib/node_modules/azure-cli/lib/commands/vm._js:758:23)
+    at verifyCertFingerPrint (/usr/local/lib/node_modules/azure-cli/lib/commands/vm._js:883:30)
+    at /usr/local/lib/node_modules/azure-cli/lib/commands/vm._js:928:30
+    at verifyUserNameAndPwd (/usr/local/lib/node_modules/azure-cli/lib/commands/vm._js:869:20)
+    at /usr/local/lib/node_modules/azure-cli/lib/commands/vm._js:923:13
+    at finalCallback (/usr/local/lib/node_modules/azure-cli/lib/util/communityUtil.js:63:7)
+    at /usr/local/lib/node_modules/azure-cli/node_modules/azure/lib/services/core/serviceclient.js:787:11
+    at /usr/local/lib/node_modules/azure-cli/lib/util/communityUtil.js:66:5

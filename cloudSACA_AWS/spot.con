@@ -1,0 +1,1 @@
+{"name": "incob-0", "s3": ["", "/s3", "/tmp"], "region": "EU1", "confName": "", "sk": "", "cert": "/home/hady/Desktop/AWS/cert-KLDQBZR7MLEDGVRSSETGH4KBXWTLGSGO.pem", "nfs": [false, "/nfs", "", "/dev/sdf", "0"], "pk": "/home/hady/Desktop/AWS/pk-KLDQBZR7MLEDGVRSSETGH4KBXWTLGSGO.pem", "requests": ["sir-e762943c", "sir-0019323c", "sir-2fe3583c", "sir-0c71c03c"], "ak": ""}

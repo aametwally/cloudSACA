@@ -1,0 +1,9 @@
+Thread=0, Read time=0.060 Sec, pDC3LEVEL=0
+Thread=0, Memory After Sequence read= 4536 kB, pDC3Level=0
+Thread=0, PSRS Tuple12 First Fasta Sort =0.000 Sec, pDC3LEVEL=1
+Thread=0, PSRS Tuple12 Last Fasta Sort =0.000 Sec, pDC3LEVEL=1
+Thread=0, Elapsed time for sorting Tuples12=0.040 Sec, pDC3LEVEL=1
+Thread=0, Memory After sorting Tuples12= 4536 kB, pDC3Level=1
+Thread=0, PSRS Mapper_Recursion First Fasta Sort =0.000 Sec, pDC3LEVEL=1
+Thread=0, PSRS Mapper_Recursion Last Fasta Sort =0.000 Sec, pDC3LEVEL=1
+Thread=0, Naming until sort_Mapper recursion=0.030 Sec, pDC3LEVEL=1

@@ -1,0 +1,36 @@
+Prerequisites:
+----------------
+To run the algorithm on local machine, you should Install and Configure MPI on all Nodes. Under Debian you need to install the following packages:
+1- openmpi-bin
+2- openmpi-common
+3- libopenmpi1.3
+4- libopenmpi-dev (Not actually needed for a slave node.)
+5- SSH-Client
+6- SSH-Server
+
+How to install the required packages:
+sudo apt-get install openmpi-bin openmpi-common libopenmpi1.3 libopenmpi-dev openssh-client openssh-server
+
+
+How to run the KS_Optimized algorithm:
+------------------------------
+A) make
+B) mpirun -np <no_cores> --hostfile <path-to-host-file> ./KS_Optimized <reference-file> [options]
+
+
+
+Implemented options:
+----------------------
+1) -v      Verbose
+2) -o      Outputfile --- The default is called SA.txt and found in the same directory.
+
+
+Examples:
+----------
+A) If you want to run on local machine:
+mpirun -np 4 ./KS_Optimized  Hgchr22.fa -v -o Hgchr22_SA
+
+B) If you want to run on computer cluster:
+mpirun -np 16 --hostfile MPI.hosts ./KS_Optimized  Hgchr22.fa -v -o Hgchr22_SA
+
+

@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 35
+/!svn/ver/15/hpc-cloud/client/trunk
+END
+Common.py
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/!svn/ver/15/hpc-cloud/client/trunk/Common.py
+END
+Connect.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/!svn/ver/15/hpc-cloud/client/trunk/Connect.py
+END
+ClientJob.py
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/!svn/ver/23/hpc-cloud/client/trunk/ClientJob.py
+END
+EBS.py
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/!svn/ver/15/hpc-cloud/client/trunk/EBS.py
+END
+volumes.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/!svn/ver/15/hpc-cloud/client/trunk/volumes.py
+END
+make.bat
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/!svn/ver/15/hpc-cloud/client/trunk/make.bat
+END
+spot.con
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/!svn/ver/15/hpc-cloud/client/trunk/spot.con
+END
+my
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/!svn/ver/15/hpc-cloud/client/trunk/my
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/!svn/ver/23/hpc-cloud/client/trunk/__init__.py
+END
+helper.py
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/!svn/ver/15/hpc-cloud/client/trunk/helper.py
+END
+EC2
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/!svn/ver/23/hpc-cloud/client/trunk/EC2
+END
+PrettyTables.py
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/!svn/ver/15/hpc-cloud/client/trunk/PrettyTables.py
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/!svn/ver/15/hpc-cloud/client/trunk/Makefile
+END
+HPCcloud-Client
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/!svn/ver/18/hpc-cloud/client/trunk/HPCcloud-Client
+END

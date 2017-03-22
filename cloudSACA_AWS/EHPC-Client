@@ -1,0 +1,1078 @@
+#!/usr/bin/python
+import socket,base64,time,sys,subprocess,ConfigParser,os,simplejson
+import ClientJob as Job,Connect
+from Crypto.PublicKey import RSA
+
+UTILS_PATH='/root/EHPC/utils.py'
+domain=""
+retry=True
+configureS3=False
+mode=""
+mainPath=os.path.dirname(os.path.abspath( __file__ ))+'/'
+logFile="/tmp/EHPC-client.log"
+confName=""
+region ="EU1"
+options=""
+instanceType="m1.large"
+name="Elastic-HPC-0"
+sshKey=""
+sshKeyPath=""
+secGroup="elasticHPC"
+amiID=""
+certfile =""
+pkfile=""
+mainNodeType=""
+extraNodesType=""
+extraMachinesPBSCores="0"
+mainMachinePBSCores=""
+nodesCount=1
+accessKey=""
+secretKey=""
+s3Bucket=""
+userdata=""
+s3MountPoint="/s3"
+s3TempDirectory="/tmp"
+emulate=False
+shareNFS=False
+nfsMountPoint="/nfs"
+nfsNewVolume="0"
+nfsAttachVolume=""
+nfsDevice="/dev/sdf"
+installTorque=True
+id="1"
+owner="pbs"
+command=""
+inputFiles=None
+outputFiles=None
+destination=""
+files=""
+keepMainNode=False
+PBSOptions=""
+zone=""
+price=""
+spotResume=False
+format="table"
+volID=""
+instanceID=""
+mountPoint=""
+device="/dev/sdf"
+forceFiles=False
+def displayRunHelp():
+	print """
+EHPC-Client --run Options
+--id              The job id, default=1
+--owner,-o        The job owner default 'pbs'
+Note: 
+	if owner is system, the commad will execute on the command line
+	if owner is hadoop, the job will be submitted as a Hadoop job
+	if owner is otherwise, this will be a PBS Torque Job
+--command         Command to run
+--inputFiles      list of input files to transfer to cloud cluster
+--outputFiles	  list of output files to fetch from cloud cluster
+			"""
+
+def readAttachVolumeParameters(args):
+	global volID,instanceID,device,mountPoint,domain,format
+	for arg in args:	
+		if "--volume-id" in arg or "--snapshot-id" in arg:
+			volID=arg.split("=")[1]
+#			print "found volume ID:" + volID
+		elif "--instance-id" in arg:
+			instanceID=arg.split("=")[1]
+#			print "found instance ID:" + instanceID
+		elif "--device" in arg:
+			device=arg.split("=")[1]
+#			print "found device:" +device
+		elif "--mountPoint" in arg:
+			mountPoint=arg.split("=")[1]
+#			print "found mountpoint:"+mountPoint
+		elif "--domin" in arg or "-d=" in arg:
+			domain=arg.split("=")[1]
+		elif "--format" in arg or "-f=" in arg:
+			format=arg.split("=")[1]
+		else:
+			print "invalid arg: " , arg
+			exit(-6)
+		
+
+def SpotInstancesManager():
+	import time
+	global region,sshKey,secGroup,price,instanceType,nodesCount,pkfile,certfile,spotResume,name,amiID,confName
+	global s3Bucket,s3MountPoint,s3TempDir,s3TempDirectory,nfsDevice,nfsAttachVolume,nfsMountPoint,nfsNewVolume,shareNFS,accessKey,secretKey,mode,id
+	if mode=="--spot-cancel":
+		c=mainPath + "EC2 %s %s %s --spot-cancel %s"  %(pkfile,certfile,region,id)
+		#print c
+		res= run (c)
+		print res
+		exit(0)
+	if spotResume:
+		print "Resuming....."
+		f=open(mainPath+"spot.con")
+		import simplejson
+		info=simplejson.loads(f.read())
+		region=info["region"]
+		requests=info["requests"]
+		pkfile=info["pk"]
+		certfile=info["cert"]
+		s=info["s3"]
+		s3Bucket=s[0]
+		s3MountPoint=s[1]
+		s3TempDirectory=s[2]
+		n=info["nfs"]
+		shareNFS=n[0]
+		nfsMountPoint=n[1]
+		nfsAttachVolume=n[2]
+		nfsDevice=n[3]
+		nfsNewVolume=n[4]
+		name=info["name"]
+		secretKey=info["sk"]
+		accessKey=info["ak"]
+		print "request IDs:" , requests
+		if confName!="":
+			aws=getUserAWSConf(mainPath+"conf/" + confName + ".conf")
+
+	else:
+		
+		c=mainPath + "EC2 %s %s EU1 --spot-reserve %s %s %s %s %s %s %s"  %(pkfile,certfile,price,secGroup,sshKey,instanceType,nodesCount,name,amiID)
+		print c
+		res= run (c)
+		#print res
+		"""SPOTINSTANCEREQUEST	sir-80751a13	0.200000	one-time	Linux/UNIX	open	2012-01-16T15:54:54+0200			mynewcluster			ami-f5a99681	m1.large	MyEUKey	HPCloud				monitoring-disabled	
+SPOTINSTANCEREQUEST	sir-8faaaa13	0.200000	one-time	Linux/UNIX	open	2012-01-16T15:54:54+0200			mynewcluster			ami-f5a99681	m1.large	MyEUKey	HPCloud				monitoring-disabled	
+SPOTINSTANCEREQUEST	sir-fdcf4e13	0.200000	one-time	Linux/UNIX	open	2012-01-16T15:54:54+0200			mynewcluster			ami-f5a99681	m1.large	MyEUKey	HPCloud				monitoring-disabled	
+"""
+		#print res
+		requests=[]
+		lines=res.split("SPOTINSTANCEREQUEST")[1:]
+		for line in lines:
+			id=line.split()[0]
+			requests.append(id)
+		print "request ids:", requests
+		log(logFile,"Spot Requests " +' '.join(requests) + "created")
+		f=open(mainPath+"spot.con",'w')
+		info={}
+		info["region"]=region
+		info["confName"]=confName
+		info["pk"]=pkfile
+		info["cert"]=certfile
+		info["name"]=name
+		info["s3"]=[s3Bucket,s3MountPoint,s3TempDirectory]
+		info["nfs"]=[shareNFS,nfsMountPoint,nfsAttachVolume,nfsDevice,nfsNewVolume]
+		info["requests"]=requests
+		info["ak"]=accessKey
+		info["sk"]=secretKey
+#		print info
+		import simplejson
+		f.write(simplejson.dumps(info))
+		f.close()
+	reqs=' '.join(requests)
+	while 1:
+		MustBreak=False
+		c2=mainPath + "EC2 %s %s EU1 --spot-descp '%s'"  %(pkfile,certfile,reqs)
+#		print c2
+		state= run(c2)
+#		print state
+		lines=state.split("SPOTINSTANCEREQUEST")[1:]
+		instances = []
+		#print len(lines)
+		for line in lines:
+			
+			d=line.split()
+			id=d[0]
+			status=d[4]
+			if status=="active":
+				instances.append(d[7])
+				print "instances are active"
+				log(logFile,"instances are active")
+				MustBreak=True
+			elif status=="open":
+				print "trying agin after a minute"
+				log(logFile,"Instances are not started yet, trying again in a minute")
+				
+				time.sleep(60)
+		#print MustBreak
+		if MustBreak:
+				print instances
+				time.sleep(15)
+				break
+#	print "in get details"
+	mainNodeDNS=getDetails(instances[0])
+	print "installing cluster at " , mainNodeDNS
+	log(logFile,"installing cluster at " +mainNodeDNS)
+	nodes=",".join(instances[1:])
+	
+	Command=genCommandFromOptions("/root/EHPC/EHPC-createCluster --install-nodes=" +nodes)
+	print "Command:", Command
+	#exit()
+	print sendNewJob(mainNodeDNS,"1","system",Command,[pkfile,certfile])
+	print "New Cluster created at: " + mainNodeDNS 
+	log(logFile,"New Cluster created at: " + mainNodeDNS)
+
+def checkMode():
+	global instanceType,mode,spotResume
+	if mode=="--nodes-add": instanceType=""
+	if mode=="--spot-resume":
+		spotResume=True
+	if mode not in ["--create","--install","--terminate" ,"--run" ,"--nodes-lst","--node-info" ,"--nodes-add","--nodes-terminate" ,"--volumes-lst","--new-group" ,"--authorize","--spot-request","--spot-resume","--spot-cancel","--volume-attach-mount","--snapshot-attach-mount",'--files-get','--job-submit', '--job-status','--files-send','--execute','--files-gather','--files-distribute',"--start"]:
+		print "invalid mode.....quitting"
+		exit(-1)
+	return True
+	
+def readParameters(args):
+	global mode,logFile,confName,region,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,domain
+	global mainNodeType,extraNodesType,extraMachinesPBSCores,mainMachinePBSCores,sshKeyPath,retry
+	global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,configureS3
+	global nfsAttachVolume,nfsDevice,nodesCount,installTorque,nfsNewVolume,keepMainNode,forceFiles,options,userdata
+	global id,owner,command,inputFiles,outputFiles,domain,zone,price,spotResume,format,mountPoint,device,volID,instanceID,files,outputDir,destination
+	mode=args[0]
+	args.pop(0)
+	checkMode()
+	if len(args)==0: return 
+	MustBreak=False
+	
+	if "attach-mount" in mode:
+			readAttachVolumeParameters(args)
+			MustBreak=True
+	if "--help" in args[0] or "-h" in args[0]:
+			if mode=="--create":
+				displayCreateClusterHelp() 
+			elif mode=="--install":
+				displayInstallHelp()
+			elif mode=="--run":
+				displayRunHelp()
+			exit(0)
+		
+	for arg in args:
+		
+		if MustBreak: 
+			break
+#		print arg
+		if "--retry" in arg:
+			retry=True
+		elif "--no-retry" in arg:
+			retry=False
+		elif "--user-data" in arg:
+			userdata=arg.split("=")[1]
+			#print options
+		elif "--options" in arg:
+			options+=" " + arg.split("=")[1]
+		elif "--domain" in arg or "-d=" in arg:
+			domain=arg.split("=")[1]
+			#print "in domain"
+		elif "--emulate" in arg:
+			#print "In emulatating mode, nothing will be really run on AWS"
+			emulate=True
+#######################################################################################################################
+##
+##                               For Install and Create
+##
+#######################################################################################################################
+
+		elif "--conf=" in arg:
+				confName=arg.split("=")[1]
+				confName=mainPath+"conf/" + confName + ".conf"
+				getUserAWSConf(confName)
+		elif "--configure-s3" in arg:
+			configureS3=True
+		elif "--region" in arg or "-r=" in arg:
+				region=arg.split("=")[1]
+				if amiID=="":
+					readConfig(region)
+				readConfig(region)
+		elif "--amiID" in arg or "-ami" in arg:
+				amiID=arg.split("=")[1]
+		elif "--log-File" in arg:
+			logFile=arg.split("=")[1]
+		elif "--private-Key" in arg or "-pk=" in arg:
+				pkfile=arg.split("=")[1]
+		elif "--certificate" in arg or "-cert=" in arg:
+				certfile= arg.split("=")[1]
+		elif "--accessKey" in arg or "-ak=" in arg:
+			accessKey=arg.split("=")[1]
+		elif "--secretKey" in arg or "-sk=" in arg:
+			secretKey=arg.split("=")[1]
+		elif "--s3-bucketname" in arg or "-s3b=" in arg:
+			s3Bucket=arg.split("=")[1]
+		elif "--name" in arg:
+			name=arg.split("=")[1]
+			if name[-1]!="0":
+				name+="-0"
+		elif "--key-pair-path" in arg:
+			sshKeyPath=arg.split("=")[1]
+		elif "--key-pair" in arg or "-kp=" in arg:
+			sshKey=arg.split("=")[1]
+		elif "--security-group" in arg or "-sg=" in arg:
+			secGroup= arg.split("=")[1]
+		elif "--instances-type" in arg or "-t=" in arg:
+			instanceType=arg.split("=")[1]
+		elif "--main-node-type" in arg:
+			mainNodeType=arg.split("=")[1]
+		elif "--noTorque" in arg:
+			installTorque=False
+		elif "--s3-mountPoint" in arg:
+			s3MountPoint=arg.split("=")[1]
+		elif "--s3-temp" in arg:
+			s3TempDirectory=arg.split("=")[1]
+		elif "--nodes-count" in arg or "-n=" in arg:
+			try:
+				nodesCount=int(arg.split("=")[1])
+			except:
+				print "nodes-count or '-n' must be an integer"
+				exit()
+		elif "--extra-nodes-type" in arg:
+			extraNodesType=arg.split("=")[1]
+		elif "--extraMachinesPBSCores" in arg:
+			try:
+				extraMachinesPBSCores=int(arg.split("=")[1])
+			except:
+				print "--computeNodesPBSCores must be an integer"
+				exit()
+		elif "--mainNodePBSCores" in arg:
+			try:
+				mainMachinePBSCores=int(arg.split("=")[1])
+			except:
+				print "mainPBSCores must be an integer"
+				exit()
+		elif "--nfs"  == arg:
+			shareNFS=True
+		elif "--nfs-mountPoint" in arg:
+			nfsMountPoint=arg.split("=")[1]
+			shareNFS=True
+		elif "--nfs-newVolume" in arg:
+			nfsNewVolume=arg.split("=")[1]
+		elif "--nfs-attachVolume" in arg:
+			nfsAttachVolume=arg.split("=")[1]
+		elif "--nfs-device" in arg:
+			nfsDevice=arg.split("=")[1]
+		elif "--noTorque" in arg:
+			installTorque=False
+#######################################################################################################################
+##
+##                                   RUN Command
+##
+#######################################################################################################################
+		elif "-id" in arg:
+			id=arg.split("=")[1]
+		elif "--owner" in arg:
+			owner=arg.split("=")[1]
+		elif "--command" in arg:
+			#print "in command"
+			command=arg.split("=",1)[1]
+			#print command
+		elif "--input-files" in arg:
+			inputFiles=arg.split("=")[1].split(',')
+		elif "--output-files" in arg:
+			outputFiles=arg.split("=")[1].split(',')
+		elif "--files" in arg:
+			files=arg.split("=")[1].split(',')
+		elif "--dir=" in arg:
+			outputDir=arg.split("=")[1]
+		elif "--dest" in arg:
+			destination=arg.split("=")[1]
+		elif "--force-files" in arg:
+			forceFiles=True
+######################################################################################################################
+##
+##                                 Terminate Command
+##
+######################################################################################################################
+		elif "--keep-main-node" in arg:
+			keepMainNode=True
+######################################################################################################################
+##
+##                                              Utilities
+##
+#######################################################################################################################
+		elif "--zone" in arg or "-z=" in arg:
+			zone=arg.split("=")[1]
+		elif "--format" in arg or "-f=" in arg:
+			format=arg.split("=")[1]
+######################################################################################################################
+##
+##                                            Spot-instances
+##
+######################################################################################################################
+		elif "--price" in arg:
+			price=arg.split("=")[1]
+		elif "--spotResume" in arg:
+			spotResume=True
+		else:
+			print "unrecognized arg: "  +arg
+			exit(-1)
+	if (mode=="--create" or mode=="--start") and amiID=="":
+		print "Can't find AMI ID to start please check configuration or use -ami"
+		exit(-3)
+	if mode in ["--create","--install",'--new-group','--authorize',"--spot-request","--start"]:
+		if pkfile=="" or certfile=="":
+			print "--pkfile and --cerfile are required for this commmand '" + mode + "'"
+			exit(1)
+		if (s3Bucket!="" or configureS3) and (accessKey=="" or secretKey==""):
+			print "--accessKey (-ak) and --secretKey (-sk) are required in case of using S3 as shared file system or configure S3"
+			exit(2)
+		if installTorque and extraNodesType!="" and extraMachinesPBSCores=="0":
+			print "--extraMachinesPBSCores is required if the instance type of compute nodes is different from main node"
+			exit(4)
+		if extraMachinesPBSCores==0 and instanceType=="":
+			s = run ("cat /proc/cpuinfo | grep processor | wc -l")
+			CurrentCores=s.strip()
+			extraMachinesPBSCores=CurrentCores		
+		if mainMachinePBSCores==0:	
+			s = run ("cat /proc/cpuinfo | grep processor | wc -l")
+			CurrentCores=s.strip()
+			mainMachinePBSCores=CurrentCores
+		if nfsAttachVolume!="" and nfsNewVolume!="0":
+			print "You can either set the NFS point as a new volume or attch old volume"
+			exit(5)
+		if not "/dev/sd" in nfsDevice:
+			print "NFS Device is not valid to AWS"
+			exit(6)
+		if mainNodeType=="" and instanceType!="":
+			mainNodeType=instanceType
+		if extraNodesType=="" and instanceType!="":
+			extraNodesType=instanceType
+		if sshKey=="":
+			print "--key-pair (-kp) is currently required to be able to start machine"
+			exit(7)
+		if secGroup=="":
+			print "--security-group (-sg) is currently required to be able to start machine"
+			exit(8)
+		if mode=="--start" and nodesCount!=1:
+			print "start is used for a single instance"
+			exit()
+	if "--nodes" in mode or '--files' in mode or '--run' in mode or '--job' in mode or "--execute" in mode :
+		if domain=="":
+			print "domain is required for '"+mode+"'"
+			exit(-10)
+	if mode=="--spot-request":
+		if price=="":
+			print "Price is required to create a spot request"
+			exit(-11)
+	if mode=="--volume-attach-mount":
+		if volID=="":
+			print "--volume-id is required while mounting a volume"
+			exit()
+		if instanceID=="":
+			print "--instance-id is required while mounting a volume"
+			exit()
+		if device=="":
+			print "--device is required while mounting a volume"
+			exit()
+		if mountPoint=="":
+			print "--mountPoint is required while mounting a volume"
+		
+	if mode=="--snapshot-attach-mount":
+		if volID=="":
+			print "--snapshot-id is required while mounting a snapshot"
+			exit()
+		if device=="":
+			print "--device is required while mounting a snapshot"
+			exit()
+		if mountPoint=="":
+			print "--mountPoint is required while mounting a snapshot"
+	
+def submitJob(domain,id,owner,command,inputs=None,outputs=None,retry=True):
+	#print "sending new job to..",domain
+	global forceFiles
+	if not forceFiles:
+		if inputs!=None:
+			for file in inputs:
+				if not file in command:
+					print "Input file '" + file + "' doesn't exists in the command, please revise your command, files list or use --force-files"
+					exit(-10)
+		if outputs !=None:
+			for file in outputs:
+				if not file in command:
+					print "Output file '" + file + "' doesn't exists in the command, please revise your command, files list or use --force-files"
+					exit(-10)
+	msg=Job.createJobMessage(id,owner,command.strip(),inputs,outputs,retry)
+	#raise Exception(msg)
+	
+	Connect.domain=domain
+	#print msg
+	res = Connect.Send(msg,retry) 
+	return res
+def checkStatus(domain,id,owner,waitTillCompleted=True,retry=True):
+	#print "retry in CheckStatus:",retry
+			
+	Connect.domain=domain
+	status = Job.checkJobStatus(Connect,id,owner,waitTillCompleted,retry)
+	return status
+
+def FetchOutput(domain,id,owner,outputs=None,retry=True):
+	#print "in FetchOutput"
+	#print "retry in fetchOutput:",retry
+			
+	if outputs!=None:
+		status=checkStatus(domain,id,owner,False,retry)
+	#	print status
+		if status=='C' or status=='E':
+				#print "Preparing to fetch files in 15 seconds"
+				#import time
+				#time.sleep(15)
+				
+				outlist=FetchFiles(domain,outputs,retry=retry)
+				print len(outlist) , "file(s) returned"
+				if len(outlist)==len(outputs):
+					return outlist
+				else:
+					return "Error Occured while fetching output, please check job logs on the server"
+		else:
+			print "Job doesn't finish yet to get outFiles"
+	else:
+		return None
+
+def sendFiles(domain,files,mode="auto",destination=""):
+	
+	global sshKeyPath
+	outFiles=[]
+	Connect.domain=domain
+	if (files !=None):
+		if mode=="auto":
+			if sshKeyPath!="":
+				mode="scp" 
+			else:
+				mode="xml"
+				return "sending files within XML messages is n't supported"
+			print 'Decided to use ' + mode
+		if mode=='xml':
+			pass
+		elif mode=='scp':
+			for file in files:
+				folder=os.path.dirname(os.path.abspath(file))
+				filename=os.path.basename(os.path.abspath(file))
+				if destination=="":
+					dest=folder
+				else:
+					dest=destination
+				if folder!="/home/ubuntu":
+					sendNewJob(domain,"1",'system','mkdir -p %s; chmod 777 %s'%(folder,dest))
+				try:
+					print "sending",file 
+					if '/' != dest[-1]:
+						dest=dest+'/'+filename
+					else:
+						dest=dest+filename
+					f = 'scp -i %s %s ubuntu@%s:%s'%(sshKeyPath,file,domain,dest)
+				#	print f
+					outFiles.append(dest)
+					f=scp(f)
+					"""if "WARNING:" in f or "ERR:" in f:
+					#	print  f
+						raise Exception(f)"""
+				except Exception as e:
+					print e
+					exit()
+		return outFiles	
+	else:
+		return None
+
+
+def FetchFiles(domain,files,mode='auto',destination="",retry=True):
+	global sshKeyPath
+	#print domain,files,mode,destination,sshKeyPath
+	Connect.domain=domain
+	
+	if (files !=None):
+		#print "in files"
+		if mode=="auto":
+			if sshKeyPath!="":
+				mode="scp"
+				
+			else:
+				mode="xml"
+				
+			print 'Decided to use ' + mode + " to transfer files"
+		if mode=='xml':
+			msg=Job.FetchOutput(id,owner,files)
+	#		print msg
+			#print "retry in fetchFiles:",retry
+			res = Connect.Send(msg,retry)
+			outlist=Job.parseResponse(res)
+	#		print outlist
+			return outlist
+		elif mode=='scp':
+			print "in scp"	
+			print files
+			for file in files:
+				dest=""
+				if destination=="":
+					dest=os.path.dirname(os.path.abspath(file))
+				else:
+					dest=destination
+				if not os.path.exists(dest):
+					os.makedirs(dest)
+				cmd='scp -r -i %s ubuntu@%s:%s %s'%(sshKeyPath,domain,file,dest)
+				#print 'cmd:' ,cmd	
+				#exit()
+				scp(cmd)
+			return files
+	else:
+		return "No Files"
+
+def sendNewJob(domain,id,owner,command,inputs=None,outputs=None,retry=True):
+	res=submitJob(domain,id,owner,command,inputs,outputs,retry)
+	
+	id=""
+	if ('recieved' in res):
+		id=res.split(":")[1]
+	else:
+		return res
+	status=Job.checkJobStatus(Connect,id,owner,True,retry)
+	if status=='C' or status=='E':
+	#	print "Job Finished, collecting output in 15 seconds"
+	#	import time
+	#	time.sleep(15)
+		if outputs!=None:
+			outlist=FetchOutput(domain,id,owner,outputs,retry)
+			if outlist!=None:
+			#	print outlist
+				return outlist
+	else:
+		return res
+def run(excuter):
+	
+	PIPE=subprocess.PIPE
+	p=subprocess.Popen(excuter,stdout=PIPE,stderr=PIPE,shell=True)
+	p.wait()
+	st=p.stderr.read()
+	
+	if (len(st)>0):
+		return "ERR: " + st		
+	return p.stdout.read()
+	
+def scp(excuter):
+	#print "in scp:", excuter
+	return os.system(excuter)
+	
+def terminateNode(pkey,cert,region,id):
+
+	run (mainPath +"EC2 " +  pkey + " " + cert + " " + region + " --terminate " + id)
+	
+def log(file,line):
+	f=open(file,'a')
+	f.write(line+'\n')
+	f.flush()
+	f.close()
+
+def getUserAWSConf(path):
+	global mode,logFile,conf,region,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,mainNodeType,computeNodesType,sshKeyPath
+	global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,nfsNewVolume,nfsAttahVolume,name
+
+	conf = ConfigParser.RawConfigParser()
+	conf.read(path)
+	dict={}
+	dict["pkeyfile"]=conf.get('aws','pkey')
+	pkfile=dict["pkeyfile"]
+	dict["certfile"]=conf.get('aws','cert')
+	certfile=dict["certfile"]
+	dict["accessKey"]=conf.get('aws','accessKey')
+	accessKey=dict["accessKey"]
+	dict["secretKey"]=conf.get('aws','secretKey')
+	secretKey=dict["secretKey"]
+	dict["keyPair"]=conf.get('aws','keyPair')
+	sshKey=dict["keyPair"]
+	dict["keyPairPath"]=conf.get('aws','keyPairPath')
+	sshKeyPath=dict["keyPairPath"]
+	secGroup=conf.get('aws','securityGroup')
+	dict['securityGroup']=secGroup
+	#s3pass='/'.join(path.split('/')[:-1])+"/.passwd-s3fs"
+	#file=open(s3pass,'w')
+	#file.write(dict["accessKey"]+":"+dict["secretKey"])
+	#file.flush()
+	#file.close()
+	#dict["s3passwd"]=s3pass
+	return dict
+
+def readConfig(region):
+	global mode,logFile,conf,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,mainNodeType,computeNodesType
+	global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,nfsNewVolume,nfsAttahVolume
+	conf = ConfigParser.RawConfigParser()
+	conf.read(mainPath+"conf/client.conf")
+	options={}
+	amiID=conf.get(region,'AMI')
+	return options
+
+def createCluster(install=True):
+		global domain,optoions
+		global mode,logFile,conf,region,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,mainNodeType,computeNodesType
+		global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,nfsNewVolume,nfsAttahVolume,name,userdata
+		id=""
+		nodes=[]
+		info=[]
+		privateIP=""
+		#print "data:",userdata
+			
+	#	print "In create mode....."
+		#print awsfile
+		f=open(logFile,'w')
+		f.write("")
+		f.close()
+		if '\\n' in str(userdata):
+		#	print "in user_data"
+			import luncher
+		#	print userdata
+			if accessKey=="":
+				print "--accessKey (-ak) is required as the user-data has new lines"
+				exit()
+			if secretKey=="":
+				print "--secretKey (-sk) is required as the user-data has new lines"
+				exit()
+			reservationId=luncher.startEC2_with_userdata(accessKey,secretKey,amiID,userdata,sshKey,secGroup,instanceType)
+			id=luncher.getInstances_in_reservation(accessKey,secretKey,reservationId)
+			print "InstancID", id
+			nodes.append(id)
+		else:	
+			comm= mainPath+"EC2 " + pkfile + " " + certfile + " " + region + " --create " + mainNodeType  + " 1 " + sshKey + " " + secGroup + " " + amiID + ' \"' + options +'\"'
+#			print comm	
+#			exit()
+			print "Starting the master node this may take up to 2 minutes"
+			log(logFile,"Starting the master node this may take up to 2 minutes")		
+			if not emulate :
+				text = run (comm) #Start Node
+				#print text
+				if ("ERR: " in text):
+					print text.strip()
+					sys.exit(1)		
+				lines=text.split("INSTANCE")
+				nodes=[]
+				for line in lines[1:]:
+					p=line.split(" ")
+					log(logFile,"Master Node ID: " + p[1])
+					print "InstanceID = "+p[1] +"\n"
+					nodes.append(p[1])
+			else:
+				domain="ec2-176-34-214-252.eu-west-1.compute.amazonaws.com"
+		for node in nodes:
+			t = run(mainPath+"EC2 "+ pkfile + " " + certfile + " "+ region + " --details " + node)
+			run(mainPath+"EC2 "+ pkfile + " " + certfile + " "+ region + " --create-tag " + node + ' Name=' + name)
+		#	print t
+			lines=t.split("\n")
+			for line in lines:
+				if "URL = " in line:
+					domain = line.split("= ")[1].strip()[1:-1]
+		log(logFile,"Master Node started Successfully")
+		
+		time.sleep(15)
+		
+		if install:
+			print	"Install New cluster at: " + domain + ".... May take take up to 5 mins"
+			log(logFile,"Install New cluster at: " + domain + ".... May take take up to 5 mins" )
+			_installCluster()
+			time.sleep(10)
+		log (logFile , "Completed Successfully")
+		print "Completed Successfully"
+		return domain
+def terminateCluster(domain):
+	global keepMainNode
+	if not keepMainNode:
+		print sendNewJob(domain,"10","system","/root/EHPC/terminateCluster.py --sucide")
+		return "Cluster is terminated successfully"
+	else:
+		print "Keeping Main node"
+		print sendNewJob(domain,"10","system","/root/EHPC/terminateCluster.py")
+		return "All extra nodes are terminated, main node is still alive"
+	
+def genCommandFromOptions(start):
+	global domain,emulate,configureS3
+	global mode,logFile,conf,region,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,mainNodeType,extraNodesType,mainMachinePBSCores
+	global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,nfsNewVolume,nfsAttachVolume,nfsDevice
+
+	Command= start +" --name=%s -pk=%s -cert=%s "%(name,pkfile,certfile)
+	if mainNodeType!= extraNodesType:
+		Command+=" -t="+extraNodesType  + " --extraMachinesPBSCores=" + str(extraMachinesPBSCores)
+		
+	if s3Bucket!="":
+		Command+=" -s3b=%s --s3-mountPoint=%s --s3-temp=%s -ak=%s -sk=%s"%(s3Bucket,s3MountPoint,s3TempDirectory,accessKey,secretKey)
+		
+	if shareNFS:
+		Command+= " --nfs-mountPoint=" + nfsMountPoint
+		if nfsAttachVolume!="":
+			Command+= " --nfs-attachVolume="+ nfsAttachVolume + " --nfs-device=" + nfsDevice
+		if nfsNewVolume!="0":
+			Command+=" --nfs-newVolume="+ nfsNewVolume + " --nfs-device="+nfsDevice
+	if mainMachinePBSCores!="":
+				Command+= " --mainNodePBSCores=" +str(mainMachinePBSCores)
+	if configureS3:
+		Command+=" --configure-s3"
+		if s3Bucket=="":
+			Command+=" -ak=%s -sk=%s"%(accessKey,secretKey)
+	return Command
+def _installCluster():
+	global domain,emulate
+	global mode,logFile,conf,region,instanceType,name,sshKey,secGroup,amiID,certfile,pkfile,mainNodeType,extraNodesType,mainMachinePBSCores
+	global emulate, accessKey,secretKey,s3Bucket,s3MountPoint,s3TempDirectory,shareNFS,nfsMountPoint,nfsNewVolume,nfsAttachVolume,nfsDevice
+	Command=genCommandFromOptions("/root/EHPC/EHPC-createCluster -n=" +str(nodesCount-1))
+	#print "Command:", Command
+	if emulate:
+#		print Command
+		return ""
+	print sendNewJob(domain,"3","system",Command,[pkfile,certfile])
+def getDetails(insID):
+	global region,pkfile,certfile
+	comm=mainPath+"EC2 "+ pkfile + " " + certfile + " "+ region + " --details " + insID
+	#print comm
+	t = run(comm)
+	print t
+	lines=t.split("\n")
+	for line in lines:
+		if "URL = " in line:
+			domain = line.split("= ")[1].strip()[1:-1]
+			return domain
+def testKeys(pub,key):
+	privateKey = RSA.importKey(key)
+	publicKey=RSA.importKey(pub)
+	if privateKey.decrypt(publicKey.encrypt("testMessage",""))=="testMessage":
+		return True
+	else:
+		return False
+		
+def generateKeys(name):
+	
+	RSAkey = RSA.generate(1024)
+	if (testKeys(RSAkey.publickey().exportKey(),RSAkey.exportKey())):
+		file=open(mainPath+'my','w')
+		file.write(RSAkey.publickey().exportKey())
+		file.close()
+		f=open(mainPath+name,'w')
+		f.write(RSAkey.exportKey())
+		f.close()
+		print "Key Generate Successfully"
+	else:
+		print "Generated Keys are NOT valid, try again"
+def displayCreateClusterHelp():
+	print """
+EHPC-Client OPTIONS
+Note: all options should be in form parameter=value
+Options:
+	--help, -h           prints help
+	--region, -r         region of interest EU1,USE1,USW1,Asia1
+	--name               Name of cluster created default Elastic-HPC
+	--amiID, -ami        ID of AMI to load
+	--log-File           path to a file to log progress to 
+	--emulate            Print the commands which will run but nothing will be done on AWS
+
+AWS Credentials
+	--private-Key, -pk   path of the private file
+	--certificate, -cert path of the cert file
+	--conf               take credentials from preconfigured file
+
+S3 as Shared FS
+	--accessKey, -ak           access key (required for S3FS)
+	--secretKey, -sk           Secret Access Key (required for S3FS)
+	--s3-bucketname, -s3b      bucket to use as S3FS
+	--s3-mountPoint            Mount point for S3FS, default /s3
+	--s3-temp                  temp directory for S3FS, default /tmp
+
+NFS:
+	--nfs-mountPoint           Mount point for NFS, default /nfs	
+	--nfs-newVolume            Create New Volume as it as NFS point
+	--nfs-attchVolume          Attach existing EBS volume as NFS point
+	--nfs-device               Device to add Vol as, default /dev/sdf
+
+Nodes Configuration
+	--key-pair, -kp             key pair to start compute nodes with, default Current KeyPair
+	--security-group, -sg       security group for compute nodes, default Current Security Group
+	--instances-type, -t        instance type of all nodes
+	--nodes-count, -n           number of the cluster machines
+
+Main Node Configuration	
+	--main-node-type            instance type of the main node only
+	--mainNodePBSCores          Number of cores to set for PBS Torque on the main node
+
+Extra Nodes configuration
+	--extra-nodes-type          Instance type of extra nodes
+	--extraMachinesPBSCores     Number of cores used by PBS torque for extra machines
+Note: you have to provide --extraMachinesPBSCores in case to you set the compute nodes type differnet from main node
+	
+
+"""
+
+def displayInstallHelp():
+	print """
+EHPC-Client --install OPTIONS
+Note: all options should be in form parameter=value
+Options:
+	--help, -h           prints help
+	--region, -r         region of interest EU1,USE1,USW1,Asia1
+	--name               Name of cluster created default Elastic-HPC
+	--log-File           path to a file to log progress to 
+	--emulate            Print the commands which will run but nothing will be done on AWS
+
+AWS Credentials
+	--private-Key, -pk   path of the private file
+	--certificate, -cert path of the cert file
+	--conf               take credentials from preconfigured file
+
+S3 as Shared FS
+	--accessKey, -ak           access key (required for S3FS)
+	--secretKey, -sk           Secret Access Key (required for S3FS)
+	--s3-bucketname, -s3b      bucket to use as S3FS
+	--s3-mountPoint            Mount point for S3FS, default /s3
+	--s3-temp                  temp directory for S3FS, default /tmp
+
+NFS:
+	--nfs-mountPoint           Mount point for NFS, default /nfs	
+	--nfs-newVolume            Create New Volume as it as NFS point
+	--nfs-attchVolume          Attach existing EBS volume as NFS point
+	--nfs-device               Device to add Vol as, default /dev/sdf
+
+Nodes Configuration
+	--key-pair, -kp             key pair to start compute nodes with, default Current KeyPair
+	--security-group, -sg       security group for compute nodes, default Current Security Group
+	--instances-type, -t        instance type of all nodes
+	--nodes-count, -n           number of the cluster machines
+
+Main Node Configuration	
+	--mainNodePBSCores          Number of cores to set for PBS Torque on the main node
+
+Extra Nodes configuration
+	--extra-nodes-type          Instance type of extra nodes
+	--extraMachinesPBSCores     Number of cores used by PBS torque for extra machines
+Note: you have to provide --extraMachinesPBSCores in case to you set the compute nodes type differnet from main node
+	
+
+"""
+
+
+
+def displayHelp():
+#	 domain id owner "command" "inputList" "outputList"
+#	Note: inputList = file1,file2,file3	
+#	      outputList= file1,file2.file3
+#	e.g:  HPC.ClusterClient --run domain 1 user1 "cat inpFile1 inputFile2 > outFile.txt" "inputFile1,inputFile2" outfile.txt
+
+	print """EHPC-Client v. 1.0
+To create a cluster:
+	./EHPC-Client --create -h
+	
+To export a command:
+	./EHPC-Client --run -h
+	
+To Terminate a cluster:
+	./EHPC-Client --terminate -h
+"""
+if __name__ =="__main__":
+	if (len(sys.argv)==1):
+		displayHelp()
+		sys.exit(0)
+	if sys.argv[1]=="--help" or sys.argv[1]=="-h":
+		displayHelp()
+		sys.exit(0)
+	else:
+		readParameters(sys.argv[1:]	)
+#	print mode	
+	if mode=="--create":
+		os.chdir(mainPath)
+		domain= createCluster(True)
+		print "URL: " + domain
+	elif (mode=="--install"):
+		if domain=="":
+			print "Domain of the main node is missing...."
+		_installCluster()
+	elif mode=="--start":
+		os.chdir(mainPath)
+		domain= createCluster(False)
+		print "URL: " + domain
+	elif (mode=="--run") :
+		#if len(inputFiles)==1 and inputFiles[0]=='':
+		#	inputFiles=None
+		#if len(outputFiles)==1 and outputFiles[0]=='':
+		#	outputFiles=None
+		print "retry:",retry
+		print "Completed:"+str(sendNewJob(domain,id,owner,command,inputFiles,outputFiles,retry))
+	elif mode=="--job-submit":
+		print submitJob(domain,id,owner,command,inputFiles,outputFiles)
+	elif mode == "--job-status":
+		print checkStatus(domain,id,owner,False)
+	elif mode=='--files-get':
+		print FetchFiles(domain,outputFiles,destination=destination)
+	elif mode=="--files-send":
+		print  sendFiles(domain,inputFiles,destination=destination)
+	elif mode=="--files-distribute":
+		c='/root/EHPC/updateChildren.py; /root/EHPC/disturb.py '+files[0]
+		#print c
+		print submitJob(domain,id,'ubuntu',c)
+	elif mode=="--files-gather":
+		print submitJob(domain,id,'ubuntu','/root/EHPC/gather.py ' + files[0] + " " + outputDir)
+	elif (mode=="--terminate"):
+		print "Terminating Cluster at: '" + domain+"'"
+		print terminateCluster(domain)
+	elif mode=="--execute":
+		print "Executing command: " + command
+		print submitJob(domain,"1000","utils",command,None,None)	
+	elif (mode=="--nodes-lst"):
+		res=sendNewJob(domain,"1","utils",UTILS_PATH+" --lst")
+		#print res
+		res= simplejson.loads(res)
+		#print res
+		if format=="table":
+			import prettytable
+			x=prettytable.PrettyTable(["Instance ID","Name","Instance Type","Zone","Status","Alive For"])
+			
+			for node in res:
+				x.add_row([node[0],node[1],node[2],node[3],node[4],node[5]])
+			print x
+		else:
+			print simplejson.dumps(res)
+	elif (mode=="--node-info"):
+		print "Getting info about " + id
+		print sendNewJob(domain,"1","utils",UTILS_PATH+" --info " + id )
+	elif (mode=="--nodes-add"):
+		print "Adding Node  " + instanceType
+		cmd="/root/EHPC/EHPC-createCluster --add-node -n=" + str(nodesCount)
+		if instanceType!="":
+			cmd+=" -t=%s --extraMachinesPBSCores=%s" %(instanceType, extraMachinesPBSCores)
+		#else:
+		#	cmd="/root/EHPC/EHPC-createCluster --add-node -t=%s -n=%s" %(instanceType, nodesCount)
+		print cmd
+		#exit(0)
+		print sendNewJob(domain,"1","utils",cmd)
+	elif mode=="--nodes-terminate":
+		print "terminating node: " + id
+		print sendNewJob(domain,"1","utils",UTILS_PATH+" --terminate-Node " + id )
+	elif mode=="--volume-attach-mount":
+		print "Attaching & Mounting Volume: " + volID
+		if format!="Y": format="N"
+		cmd=UTILS_PATH+" --attach-Vol %s %s %s %s %s"%(instanceID,volID, device,mountPoint,format )
+		print cmd
+		print sendNewJob(domain,"1","utils",cmd)
+	elif mode=="--snapshot-attach-mount":
+		print "Attaching & Mounting snapshot: " + volID
+		cmd=UTILS_PATH+" --attach-Snapshot %s %s %s"%(volID, device,mountPoint)
+		cmd=UTILS_PATH+" --attach-Snapshot %s %s %s"%(volID, device,mountPoint)
+		print cmd
+		print sendNewJob(domain,"1","utils",cmd)
+	
+	elif mode=="--new-group":
+		comm= mainPath+"EC2 " + pkfile + " " + certfile + " " + region + " --create-group " + secGroup + ' "ElasticHPC Rules"'
+		print comm
+		print run(comm)
+	elif mode=="--authorize":
+		comm= mainPath+"EC2 " + pkfile + " " + certfile + " " + region + " --authorize " + secGroup
+		print comm
+		print run(comm)
+	elif "spot" in mode:
+		SpotInstancesManager()
+	
+	elif (mode=="--volumes-lst"):
+		print "Getting lst of volumes in  " + zone
+		print sendNewJob(domain,"1","utils",UTILS_PATH+" --lst-Vols " + zone )
+
+	elif sys.argv[1]=="--generate-keys":
+		generateKeys(sys.argv[2])
+	elif sys.argv[1]=="--test-keys":
+		name=sys.argv[2]
+#		f=open(mainPath+'my','r')
+		f=open("/home/mohamed/amazon/emr/MyScripts/Client/my",'r')
+		
+		pub=f.read()
+		f.close()
+#		f=open(mainPath+name,'r')
+		f=open("/home/hadoop/CommandServer/client.pub",'r')
+		private=f.read()
+		f.close()
+		if testKeys(pub,private):
+			print "Keys valid"
+		else:
+			print "Keys are NOT valid"
+	

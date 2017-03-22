@@ -1,0 +1,21 @@
+How to run the KS_Merge algorithm:
+------------------------------
+A) make
+B) mpirun -np <no_cores> --hostfile <path-to-host-file> ./KS_Merge <reference-file> [options]
+
+
+
+Implemented options:
+----------------------
+1) -v      Verbose
+2) -o      Outputfile --- The default is called SA.txt and found in the same directory.
+
+Examples:
+----------
+A) If you want to run on local machine:
+mpirun -np 4 ./KS_Merge  Hgchr22.fa -v -o Hgchr22_SA
+
+B) If you want to run on computer cluster:
+mpirun -np 16 --hostfile MPI.hosts ./KS_Merge  Hgchr22.fa -v -o Hgchr22_SA
+
+

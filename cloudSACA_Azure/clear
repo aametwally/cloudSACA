@@ -1,0 +1,21 @@
+#! /bin/bash
+echo "" >  /etc/hosts
+cp /root/EHPC/bck/maui.cfg /usr/local/maui
+cp /root/EHPC/bck/exports  /etc/exports
+cp /root/EHPC/bck/.s3cfg   /home/ubuntu/.s3cfg
+rm -rf /var/spool/torque
+rm -f /tmp/cluster.log
+rm -f /root/.passwd-s3fs
+rm -f /root/EHPC/cert/*
+rm -f /root/nodesList
+rm -f /root/EHPC/*.pyc
+rm -f /root/stats
+rm -f /root/EHPC/NFSinfo
+rm -f /root/EHPC/S3info
+rm -f /root/EHPC/children.lst
+file="/s3/tavaxy"
+if [ -h "$file" ]; then
+	echo "Delete /s3/tavaxy link"
+	rm /s3/tavaxy
+fi
+#./installTorque.py

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/!svn/ver/15/hpc-cloud/client/trunk/conf
+END
+client.conf
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/!svn/ver/23/hpc-cloud/client/trunk/conf/client.conf
+END
+default.conf
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/!svn/ver/15/hpc-cloud/client/trunk/conf/default.conf
+END
+.passwd-s3fs
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/!svn/ver/15/hpc-cloud/client/trunk/conf/.passwd-s3fs
+END

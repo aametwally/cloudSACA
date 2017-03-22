@@ -1,0 +1,100 @@
+****************************************************************
+********                     pSACA                      ********
+********  Parallel Suffix Array Construction Algorithm 	********
+********                  Based on MPI                 	********
+********  [Implementation of Futamura-Kurtz Algorithm]  ********
+****************************************************************
+*                  This is pSACA version 1.0                   *
+*                                                              *
+*           Copyright by Ahmed M. Abdelhadi (C) 2013           *
+*                                                              *
+*            Please report bugs & suggestions to               *
+*               <ahmed.abdelhady@eng.cu.edu.eg>                *
+****************************************************************
+Thread=0, Reading file=0.000 Sec
+output file is=SA
+Thread=0, AlphabetSize=5
+Thread=0, Mapping=0.000 Sec
+Thread=4, Mapping=0.000 Sec
+Thread=8, Mapping=0.000 Sec
+Thread=9, Mapping=0.000 Sec
+Thread=3, Mapping=0.000 Sec
+Thread=6, Mapping=0.000 Sec
+Thread=14, Mapping=0.000 Sec
+Thread=2, Mapping=0.000 Sec
+Thread=13, Mapping=0.000 Sec
+Thread=12, Mapping=0.000 Sec
+Thread=11, Mapping=0.000 Sec
+Thread=5, Mapping=0.000 Sec
+Thread=10, Mapping=0.000 Sec
+Thread=1, Mapping=0.000 Sec
+Thread=15, Mapping=0.000 Sec
+Thread=7, Mapping=0.000 Sec
+Thread=6, Sort suffix in appropriate=0.000 Sec
+Thread=2, Sort suffix in appropriate=0.000 Sec
+Thread=10, Sort suffix in appropriate=0.000 Sec
+Thread=4, Sort suffix in appropriate=0.000 Sec
+Thread=14, Sort suffix in appropriate=0.000 Sec
+Thread=0, Sort suffix in appropriate=0.000 Sec
+Thread=8, Sort suffix in appropriate=0.000 Sec
+Thread=12, Sort suffix in appropriate=0.000 Sec
+Thread=1, Sort suffix in appropriate=0.000 Sec
+Thread=13, Sort suffix in appropriate=0.000 Sec
+Thread=9, Sort suffix in appropriate=0.000 Sec
+Thread=5, Sort suffix in appropriate=0.000 Sec
+Thread=11, Sort suffix in appropriate=0.000 Sec
+Thread=3, Sort suffix in appropriate=0.000 Sec
+Thread=7, Sort suffix in appropriate=0.000 Sec
+Thread=15, Sort suffix in appropriate=0.000 Sec
+Thread=0, 1st Permutation Phase=0.160 Sec
+Thread=8, 1st Permutation Phase=0.170 Sec
+Thread=8, Time before Sorting=0.340 Sec
+Thread=8, Finish Sorting, Sorting Time=0.000 Sec
+Thread=0, Time before Sorting=0.340 Sec
+Thread=0, Finish Sorting, Sorting Time=0.000 Sec
+Thread=12, 1st Permutation Phase=0.160 Sec
+Thread=12, Time before Sorting=0.340 Sec
+Thread=12, Finish Sorting, Sorting Time=0.000 Sec
+Thread=10, 1st Permutation Phase=0.180 Sec
+Thread=9, 1st Permutation Phase=0.160 Sec
+Thread=10, Time before Sorting=0.240 Sec
+Thread=9, Time before Sorting=0.330 Sec
+Thread=10, Finish Sorting, Sorting Time=0.000 Sec
+Thread=6, 1st Permutation Phase=0.160 Sec
+Thread=9, Finish Sorting, Sorting Time=0.000 Sec
+Thread=4, 1st Permutation Phase=0.170 Sec
+Thread=4, Time before Sorting=0.340 Sec
+Thread=4, Finish Sorting, Sorting Time=0.000 Sec
+Thread=2, 1st Permutation Phase=0.160 Sec
+Thread=2, Time before Sorting=0.330 Sec
+Thread=2, Finish Sorting, Sorting Time=0.000 Sec
+Thread=6, Time before Sorting=0.340 Sec
+Thread=5, 1st Permutation Phase=0.170 Sec
+Thread=5, Time before Sorting=0.340 Sec
+Thread=5, Finish Sorting, Sorting Time=0.000 Sec
+Thread=6, Finish Sorting, Sorting Time=0.000 Sec
+Thread=14, 1st Permutation Phase=0.170 Sec
+Thread=14, Time before Sorting=0.330 Sec
+Thread=14, Finish Sorting, Sorting Time=0.000 Sec
+Thread=1, 1st Permutation Phase=0.170 Sec
+Thread=1, Time before Sorting=0.190 Sec
+Thread=1, Finish Sorting, Sorting Time=0.000 Sec
+Thread=3, 1st Permutation Phase=0.170 Sec
+Thread=3, Time before Sorting=0.340 Sec
+Thread=3, Finish Sorting, Sorting Time=0.000 Sec
+Thread=13, 1st Permutation Phase=0.180 Sec
+Thread=13, Time before Sorting=0.340 Sec
+Thread=13, Finish Sorting, Sorting Time=0.000 Sec
+Thread=11, 1st Permutation Phase=0.180 Sec
+Thread=11, Time before Sorting=0.350 Sec
+Thread=11, Finish Sorting, Sorting Time=0.000 Sec
+Thread=7, 1st Permutation Phase=0.170 Sec
+Thread=7, Time before Sorting=0.190 Sec
+Thread=7, Finish Sorting, Sorting Time=0.000 Sec
+Thread=15, 1st Permutation Phase=0.190 Sec
+Thread=15, Time before Sorting=0.200 Sec
+Thread=15, Finish Sorting, Sorting Time=0.000 Sec
+Thread=0, Total Time=0.360 Sec
+Thread=0, Saving Output=0.000 Sec
+Thread=0, Total Time After Output Saving=0.360 Sec
+Thread=0, VmHWM:	    5384 kB

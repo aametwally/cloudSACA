@@ -1,0 +1,5 @@
+[aws]
+pkey: /path/to/pk.pem
+cert: /path/to/cert.pem
+accessKey: YOUR_ACCESS_KEY
+secretKey: YOUR_SECRET_KEY

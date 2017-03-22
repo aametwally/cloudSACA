@@ -1,0 +1,1110 @@
+#!/usr/bin/python
+import sys
+import os
+import subprocess
+import logging
+import base64
+import time
+from base64 import b64encode
+import azurehpc
+import sshazure
+import send
+import re
+#------------------------------------------------------------------------------------------------------------
+#				ELASTIC HIGH PERFORMANCE COMPUTING ON
+#				MICROSOFT WINDOWS AZURE `VERSION 1.0`
+#------------------------------------------------------------------------------------------------------------
+certificate_path 	= ""
+pkfile 				= ""
+cert_data_path 		= ""
+subscription_id	 	= ""
+thumbprint 			= ""
+storage_account		= ""
+imageID				= ""
+certPasswd			= ""
+cert_data			= ""
+#size				= "Small"
+#region				= "West US"
+num					= 4
+dsize				= 10
+name				= "elasticoo"
+master_node			= ""
+node_list			= []
+output				= []
+master_size			= "Large"
+#with open(cert_data_path, "rb") as bfile:
+#	cert_data = base64.b64encode(bfile.read())
+
+# Print Help:
+#------------
+def helpOptions():
+	print"""
+--------------------------------
+Welcome to Elastic HPC on Azure:
+--------------------------------
+	- OPTIONS:
+	----------
+	
+		--help					Show Help
+		
+	- VIRTUAL MACHINES MANAGEMENT:
+	------------------------------ 
+		
+		--create				Creating Cluster on Azure.
+			--number			Number of nodes in cluster.
+			--size				Node Size (Small, Large, Medium, ExtraLarg, A5, A6, A7). defualt size is Small
+			--region			Region by defualt is West US "WUS"
+							Specify Region: 
+								WUS for West US
+								EUS for East US
+								NEU for North Europe
+								WEU for West Europe
+								SEA for Southeast Asia
+								EAS for East Asia
+			--cluster			Cluster Name
+			--subid				Subscription Id
+			--thumb				Thumbprint
+			--pemfile			.pem file
+			--cerfile			.cer file
+			--pfxfile			.pfx file
+			--cerpass			.cer file
+			--stracc			Storage account name
+			--strkey			Storage account key
+			--imageid			Public Image ID on VMDepot.com
+			--mastersize		Master Machine Size 
+			
+		--delete				Delete Cluster
+				--service		Service Name
+				--deployment		Deployment Name
+				--role			Master node name
+		--list_nodes				List Cluster nodes. Add the master node name to retrieve the status of cluster
+		--vmStatus				Get the status of virtual machine (Running/Down) [--vmStatus=<VM Name>]
+		--clusterStatus				Get machines of cluster status [--clusterStatus=<Master Node Name>]
+		--listVM				List all virtual machines 
+		--attache				Attache Data disk to machine.
+			--dsize				Data Disk size.
+		--uploadFile				Upload file to virtual Machine
+			--filePath					Input File Path
+			--outputDirectory			output Directory
+			--MachineID					Machine ID
+			--port						Port Number
+		--download_block			Download block blob to cluster
+			--link					block blob link
+			--subid					subscription id
+			--pemfile				certification file '.pem'
+			--master				master node.
+	- JOB SCHEDULAR MANAGEMENT:
+	---------------------------
+		
+		--installPBS				Install PBS Torque on master and slave nodes [--installPBS --master-Node-name=<Master Name>]
+			--MasterNode			Master Node Name
+		--run					Run or submit job to master node
+			--id				job id by defualt = 1
+			--command			Command line that you need to submit
+			--domain			Instance name
+			--inputFiles			list of input files to transfer to cloud cluster
+			--outputFiles			list of output files to fetch from cloud cluster
+			--owner				job owner by defualt job owner is "pbs"
+							Note:
+								if owner is system, the commad will execute on the command line
+								if owner is hadoop, the job will be submitted as a Hadoop job
+								if owner is otherwise, this will be a PBS Torque Job
+		
+	- DATA STORAGE MANAGEMENT:
+	--------------------------
+		
+		--storageaccount			Create new storage account.
+			--label				Storage account name.
+			--region			Storage account location < WUS for West US >
+										 < EUS for East US >
+										 < NEU for North Europe >
+										 < WEU for West Europe >
+										 < SEA for Southeast Asia >
+										 < EAS for East Asia >
+		--delete_str_account			delete storage account.
+		--list_storage_key			list storage account key. <--list_storage_key=StorageAccountName>
+		--list_storage_accounts			list storage accounts.
+		--storagecontainer			Create Storage Container.
+			--account_name			Storage account name.
+			--container_name		Storage container name.
+			--permission			Storage container permission (Off/Blob/Container).
+		--delete_str_container			delete storage container
+			--account_name			Storage account name.
+			--container_name		Storage container name.
+		--list_str_containers			list storage container
+			--account_name			Storage account name.
+		--uploadBlob				Upload blob to container
+			--container_name		Container Name
+			--file_path			The file Path
+			--account_name			Storage account name
+			--subid				Subscription Id
+			--pemfile			.pem file
+		--attachDataDisk			Attach data disk to virtual machine
+			--instnaceName			Virtual machine name
+			--diskSize			Disk Size in GB
+		
+	- CLOUD SERVICE MANAGEMENT:
+	---------------------------
+		
+		--create_service			Create a new service
+	
+	- Run Command on Cluster:
+	-------------------------
+	
+		--run				Run Command Line on the cluster
+			--master		Master Node id.
+			--command		Command line in single quotation 'YOUR COMMAND LINE'. 
+			--file			Upload file from local host
+			--download		Download file from Master node.
+			--s3			Upload S3 public object file from AWS.
+			--block			Upload Block Blob from Windows Azure.
+	"""
+	sys.exit(0)
+
+# Create Cluster:
+#----------------
+def createCluster(num,size,region,imageID):
+	"""
+	Creating Master node then create the compute nodes from the server.
+	""" 
+	log.info("Start Creating New Cluster")
+	log.info("Subscription ID: "+subscription_id)
+	log.info("Certification Path: "+certificate_path)
+	log.info("Storage Account: "+storage_account)
+	log.info("Image ID: "+imageID)
+	log.info("Image Size: "+size)
+	log.info("Region: "+region)
+	log.info("Private Key File: "+pkfile)
+	log.info("Number of Nodes: "+str(num))
+	log.info("**************************************************")
+	log.info("Creating Master Node In Progress.............. OK")
+	log.info("**************************************************")
+	sms				= azureclient.CheckSubscription(subscription_id,certificate_path)
+	Hostname= azureclient.get_vm_name()
+	output 	= azureclient.createInstances(sms, Hostname+str(0), region, imageID, size, pkfile, num-(num-1), thumbprint, cert_data,num-1,certPasswd,storage_account,master_size)
+	log.info("Domain Name: "+output[0])
+	log.info("Configure azure account")
+	domain 	= output[0]
+	id 	= "1"
+	log.info("ID: "+id)
+	owner	= "ehpcuser"
+	log.info("owner: "+owner)
+	inputs	= None
+	outputs = None
+	port = 5000
+	log.info("Configuring Server Credentials please wait !!!")
+	mainPath = os.path.dirname(os.path.abspath(__file__))
+	log.info("uploading certifications")
+	result = send.UploadFiles(domain,port,id,owner,[mainPath+"/keys/mycert.cer",mainPath+"/keys/mycert.pem",mainPath+"/keys/mycert.pfx"],"/home/ehpcuser/ehpcazure/keys/")
+	result = send.UploadFiles(domain,port,id,owner,[mainPath+"/Config/azure.conf"],"/home/ehpcuser/ehpcazure/Config/")
+	log.info("Configuring Azure on Master Node: "+output[0].split('.')[0])
+	if num>1:
+		domain 	= output[0]
+		service = output[0].split(".")[0]
+		container_name = output[1]
+		id 		= "1"
+		log.info("ID: "+id)
+		owner	= "ehpcuser"
+		log.info("owner: "+owner)
+		inputs	= None
+		outputs = None
+		command	= "nohup python /home/ehpcuser/ehpcazure/ehpc-client.py --create --number="+str(num-1)+" --size="+size+" --region="+"WUS"+" --MasterNode="+domain+" --container="+container_name+" --service="+service+"  > /dev/null 2>&1 &"
+		log.info(command)
+		result 	= send.sendNewJob(domain,port,id,owner,command,inputs,outputs)
+		log.info("")
+		azureclient.getRolesStatus(num,sms,service,service,service)
+		log.info("Save cluster nodes file to clusters_info/ directory")
+		nodes = []
+		for i in range(num):
+			nodes.append(service[:-1]+str(i))
+		azureclient.saveNodes(nodes,service+".cloudapp.net")
+		log.info("Configuring Keyless ssh")
+		#log.info("python "+mainPath+"/SshConfigCluster.py "+service)
+		nodes = []
+		main_path = os.path.dirname(os.path.abspath(__file__))
+		file2 = open(main_path+"/clusters_info/"+service+".cloudapp.net.txt",'r')
+		for node in file2.readlines():
+			nodes.append(node.split("\n")[0])
+		setupKeylessSSH(nodes)
+		log.info("Deployment complete.......... Ok")
+	else:
+		azureclient.saveNodes("",output[0])
+	for i in range(0,num-1):
+		log.info("Login to Node #"+str(i)+": 'ssh -i keys/mycert.pem ehpcuser@"+output[0]+" -p 220"+str(i)+" -v'")
+		
+def install_torque_Server_Compute(master_node,inputs, outputs):
+	domain 	= master_node+".cloudapp.net"
+	port = 5000
+	id 		= "1"
+	owner	= "ehpcuser"
+	command = "python /home/ehpcuser/ehpcazure/ehpc-client.py --installPBS --MasterNode="+master_node
+	log.info("Installing PBS Torque: "+command)
+	result 	= send.sendNewJob(domain,port, id, owner, command, inputs, outputs)
+	print result
+def create_nfs():
+	code = '/mount/nfs '+'ahmed-Sate9331'+'(ro,sync,no_root_squash)'
+	command1 = "sudo sh -c "+'"'+"mkdir -p /mount/nfs"+'"'
+	command2 = "sudo  sh -c "+'"'+"chmod 666 /etc/exports"+'"'
+	command3 = "sudo echo "+'"'+code+'"'+' > /etc/exports'
+	command4= "sudo sh -c "+'"'+"chmod 644 /etc/exports"+'"'
+	owner = "ehpcuser"
+	domain = "ahmed-Sate9330.cloudapp.net"
+	id = "20"
+	port = 5000
+	print command1
+	send.sendNewJob(domain,port, id, owner, command1, None, None)
+	print command2
+	send.sendNewJob(domain,port, id, owner, command2, None, None)
+	print command3
+	send.sendNewJob(domain,port, id, owner, command3, None, None)
+	print command4
+	send.sendNewJob(domain,port, id, owner, command4, None, None)
+	
+	
+	command1 = 'sh -c "sudo umount /dev/sdb1"'
+	print command1
+	send.sendNewJob(domain,port,id,"ehpcuser", command1,None,None)
+	command2 = 'sudo mount /dev/sdb1 /mount/nfs'
+	print command2
+	send.sendNewJob(domain,port,id,"ehpcuser", command2,None,None)
+	command3 = 'sudo /etc/init.d/nfs-kernel-server start'
+	print command3
+	send.sendNewJob(domain,port,id,"ehpcuser", command3,None,None)
+	
+def getOptions(args):
+	global num, size, region, dsize, subscription_id,thumbprint, certificate_path, pkfile, cert_data_path,certPasswd,storage_account,imageID,master_size, cert_data
+	if "--nfs"==args[0]:
+		create_nfs()
+	#-------------------------------------------------------------------
+	# Create Azure Cluster:
+	#-------------------------------------------------------------------
+	if "--create" == args[0]:
+		num = size = region = None
+		for arg in args:
+				if "--number=" in arg:
+					num = int(arg.split("=")[1])
+				if "--size=" in arg:
+					size = arg.split("=")[1]
+				if "--region=" in arg:
+					if arg.split("=")[1] == "WUS":
+						region = "West US"
+					elif arg.split("=")[1] == "EUS":
+						region = "East US"
+					elif arg.split("=")[1] == "NEU":
+						region = "North Europe"
+					elif arg.split("=")[1] == "WEU":
+						region = "West Europe"
+					elif arg.split("=")[1] == "SEA":
+						region = "Southeast Asia"
+					elif arg.split("=")[1] == "EAS":
+						region = "East Asia"
+					else:
+						region = "West US"
+				if "--cluster=" in arg:
+					cluster_name = arg.split("=")[1]
+				if "--subid=" in arg:
+					subscription_id = arg.split("=")[1]
+				if "--thumb=" in arg:
+					thumbprint = arg.split("=")[1]
+				if "--pemfile=" in arg:
+					certificate_path = arg.split("=")[1]
+				if "--cerfile=" in arg:
+					pkfile = arg.split("=")[1]
+				if "--pfxfile=" in arg:
+					cert_data_path = arg.split("=")[1]
+				if "--cerpass=" in arg:
+					certPasswd = arg.split("=")[1]
+				if "--stracc=" in arg:
+					storage_account = arg.split("=")[1]
+				if "--strkey=" in arg:
+					strkey = ""
+				if "--imageid=" in arg:
+					imageID = arg.split("=")[1]
+				if "--mastersize=" in arg:
+					master_size = arg.split('=')[1] 
+		
+		if (num == None or size == None or region == None):
+			log.info("ERORR: please check the command")
+			sys.exit(0)
+		else:
+			with open(cert_data_path, "rb") as bfile:
+				cert_data = base64.b64encode(bfile.read())
+			createCluster(num,size,region,imageID)
+	#-------------------------------------------------------------------
+	# Create Storage Container:
+	#-------------------------------------------------------------------
+	if "--storagecontainer" == args[0]:
+		account_name = container_name = permission = None
+		for arg in args:
+			if "--account_name=" in arg:
+				account_name = arg.split("=")[1]
+			elif "--container_name=" in arg:
+				container_name = arg.split("=")[1]
+			elif "--permission=" in arg:
+				permission = arg.split("=")[1]
+				if permission == "off":
+					permission = None
+				elif permission == "Container":
+					permission = "container"
+				elif permission == "Blob":
+					permission = "blob"
+				else:
+					permission = None
+		if (account_name == None or container_name == None):
+			log.info("ERORR: Ple--uploadFilease check the command line")
+			sys.exit(1)
+		else:
+			sms = azureclient.CheckSubscription(subscription_id,certificate_path)
+			account_keys = azureclient.getStorageAccountKey(account_name).split("\n")
+			for line in account_keys:
+				if "Primary:" in line:
+					account_key = line.split("Primary:")[1].replace(" ",'').split("\n")[0]
+			azureclient.create_containers(sms,account_name,account_key,container_name,permission)
+	#-------------------------------------------------------------------
+	# Create Storage account:
+	#-------------------------------------------------------------------
+	if "--storageaccount" == args[0]:
+		strlabel = strregion = None
+		for arg in args:
+			if "--label" in arg:
+				if "=" in arg:
+					strlabel = arg.split("=")[1]
+				else:
+					log.info("ERORR: please check the command")
+					sys.exit(0)
+			if "--region" in arg:
+				if "=" in arg:
+					if arg.split("=")[1] == "WUS":
+						strregion = "West US"
+					elif arg.split("=")[1] == "EUS":
+						strregion = "East US"
+					elif arg.split("=")[1] == "NEU":
+						strregion = "North Europe"
+					elif arg.split("=")[1] == "WEU":
+						strregion = "West Europe"
+					elif arg.split("=")[1] == "SEA":
+						strregion = "Southeast Asia"
+					elif arg.split("=")[1] == "EAS":
+						strregion = "East Asia"
+					else:
+						strregion = "West US"
+				else:
+					log.info("ERORR: please check the command")
+					sys.exit(0)
+		if (strlabel == None or strregion == None):
+			log.info("ERORR: please check the command")
+			sys.exit(0)
+		else:
+			sms = azureclient.CheckSubscription(subscription_id,certificate_path)
+			strAffGrp = azureclient.createAffinityGrp(sms,strlabel,strlabel,strlabel,strregion)
+			azureclient.StorageCreate(sms,strlabel,strlabel,strlabel,strregion,strAffGrp)
+	#-------------------------------------------------------------------
+	# Delete Storage Container:
+	#-------------------------------------------------------------------
+	if "--delete_str_container" in args[0]:
+		account_name = container_name = None
+		for arg in args[1:]:
+			if "--account_name=" in arg:
+				account_name = arg.split("=")[1]
+			if "--container_name=" in arg:
+				container_name = arg.split("=")[1]
+		account_keys = azureclient.getStorageAccountKey(account_name).split("\n")
+		if account_keys == "ERR" or account_name == None or container_name == None:
+			log.info("ERROR: Please Check your command line")
+			sys.exit(0)
+		else:
+			account_key = ""
+			for line in account_keys:
+				if "Primary:" in line:
+					account_key = line.split("Primary:")[1].replace(" ",'').split("\n")[0]
+			result = azureclient.delete_containers(container_name, account_name, account_key)
+			if not result:
+				log.info("ERORR: This container may be not exist")
+			else:
+				log.info("The container has been deleted ......... Ok")
+	#-------------------------------------------------------------------
+	# List Storage accounts:
+	#------------------------------------------------------------------- 
+	if "--list_str_containers" in args[0]:
+		account_name = container_name = None
+		for arg in args[1:]:
+			if "--account_name=" in arg:
+				account_name = arg.split("=")[1]
+		account_keys = azureclient.getStorageAccountKey(account_name).split("\n")
+		if account_keys == "ERR" or account_name == None:
+			log.info("ERROR: Please Check your command line")
+			sys.exit(0)
+		else:
+			account_key = ""
+			for line in account_keys:
+				if "Primary:" in line:
+					account_key = line.split("Primary:")[1].replace(" ",'').split("\n")[0]	
+			result = azureclient.list_storage_container(account_name, account_key)
+			for name in result:
+				self.logger.info("Conatiner Name: "+name) 
+	#-------------------------------------------------------------------
+	# Delete Storage Account:
+	#-------------------------------------------------------------------
+	if "--delete_str_account" in args[0]:
+		strAccountName = None
+		if "--delete_str_account=" in args[0]:
+			sms = azureclient.CheckSubscription(subscription_id,certificate_path)
+			strAccountName = args[0].split("=")[1]
+			if strAccountName == None:
+				log.info("ERORR: Please check your command 'Storage account name'")
+				sys.exit(1)
+			else:
+				azureclient.deleteStorageAccount(sms,strAccountName)
+		else:
+			log.info("ERORR: please check the command")
+			sys.exit(0)
+	#-------------------------------------------------------------------
+	# Upload Block Blob to Azure Storage:
+	#-------------------------------------------------------------------
+	if "--uploadBlob" in args[0]:
+		container_name = account_name = account_key = filepath = blob_name = None
+		for arg in args:
+			if "--container_name=" in arg:
+				container_name = arg.split("=")[1]
+			if "--file_path=" in arg:
+				filepath = arg.split("=")[1]
+			if "--account_name=" in arg:
+				account_name = arg.split("=")[1]
+			if "--subid=" in arg:
+				subscription_id = arg.split("=")[1]
+			if "--pemfile=" in arg:
+				certificate_path = arg.split("=")[1]
+		blob_name = os.path.basename(filepath)
+		file1 ,filename = os.path.split(filepath)
+		sms				= azureclient.CheckSubscription(subscription_id,certificate_path)
+		upload_block(sms,account_name,container_name,filename,"West US",filepath)
+	#-------------------------------------------------------------------
+	# Download Block Blob
+	#-------------------------------------------------------------------
+	if "--downloadBlob" in args[0]:
+		container = account = key = filepath = blobname = None
+		for arg in args:
+			if '--container=' in arg:
+				container = arg.split("=")[1]
+			if '--account=' in arg:
+				account = arg.split("=")[1]
+			if '--filepath=' in arg:
+				path = arg.split("=")[1]
+			if '--blob=' in arg:
+				blob = arg.split("=")[1]
+			if "--subid=" in arg:
+				subscription_id = arg.split("=")[1]
+			if "--pemfile=" in arg:
+				certificate_path = arg.split("=")[1] 
+		if subscription_id == None or certificate_path == None or blob == None or path == None or account == None or container == None:
+			print "ERROR: Please check the commmnad line"
+			sys.exit(0)
+		sms = azureclient.CheckSubscription(subscription_id,certificate_path)
+		download_block(sms,account,container,blob,path)
+	#-------------------------------------------------------------------
+	# Download Block Blob From link:
+	#-------------------------------------------------------------------
+	if '--downloadblock' in args[0]:
+		container = link = account = subscription_id = certificate_path = key = blob = None
+		destination = '/home/ehpcuser/Downloads/'
+		for arg in args:
+			if '--link=' in arg:
+				link = arg.split('=')[1]
+			if '--subid=' in arg:
+				subscription_id = arg.split('=')[1]
+			if '--pemfile=' in arg:
+				certificate_path = arg.split('=')[1]
+			if '--dest=' in arg:
+				destination = arg.split('=')[1]
+			if '--master=' in arg:
+				master = arg.split('=')[1]
+		# http://elastichpc2.blob.core.windows.net/ahmedcont/admin-openrc.sh
+		link = link.replace('"','').split('/')
+		account 	= link[2].split('.')[0]
+		container 	= link[3]
+		blob 		= link[4]
+		print "INFO: Submitting Download Requist to cluster nodes."
+		#python ehpc-client.py --downloadBlob --container=ahmedcont --filepath=/home/ehpcuser/downloads --blob=Hg1.fa --account=elastichpc2 --pemfile=/home/ehpcuser/ehpcazure/keys/mycert.pem --subid=8be5609b-07c9-4114-8865-921ad82cb64a
+		command = "nohup python /home/ehpcuser/ehpcazure/ehpc-client.py --downloadBlob --container="+container+" --filepath="+destination+" --blob="+blob+" --account="+account+" --pemfile=/home/ehpcuser/ehpcazure/"+certificate_path+" --subid="+subscription_id+" > /dev/null 2>&1 &"
+		mainpath = os.path.dirname(os.path.abspath(__file__))
+		file2 = open(mainpath+"/clusters_info/"+master+".txt",'r')
+		nodes = []
+		for node in file2.readlines():
+			nodes.append(node.split("\n")[0])
+		port 	= "5000"
+		num  	= 1
+		domain 	= nodes[0]+".cloudapp.net" 
+		for node in nodes:
+			result 	= send.sendNewJob(master,int(port),"21","ehpcuser",command,None,None)
+			port 	= "5000"
+			port = port[:-1]+str(num)
+			num +=1
+		
+	#-------------------------------------------------------------------
+	# List Storage accounts:
+	#-------------------------------------------------------------------
+	if "--list_storage_accounts" in args[0]:
+			output = azureclient.list_storage_account()
+			output = output.split("\n")
+			for line in output:
+				log.info(line)
+	if "--list_storage_key" in args[0]:
+			if "--list_storage_key=" in args[0]:
+				strAccountName = args[0].split("=")[1]
+				output = azu--uploadFilereclient.getStorageAccountKey(strAccountName)
+				output = output.split("\n")
+				for line in output:
+					log.info(line)
+			else:
+				log.info("ERROR: please check the command line")
+				sys.exit(0)
+	#-------------------------------------------------------------------
+	# Attache Data Disk:
+	#-------------------------------------------------------------------
+	if "--attachDataDisk" in args[0]:
+		instanceName = diskSize = None
+		for arg in args:
+			if "--instnaceName=" in arg:
+				instanceName = arg.split("=")[1]
+			if "--diskSize=" in arg:
+				diskSize	= arg.split("=")[1]
+		if diskSize == None or instanceName == None:
+			 log.info("please check the command")
+			 sys.exit(0)
+		else:
+			azureclient.attachDiskToInstance(diskSize,instanceName)
+	#-------------------------------------------------------------------
+	# Terminate cluster:
+	#-------------------------------------------------------------------
+	if "--terminate" == args[0]:
+		subscription_id = certificate_path = None
+		for arg in args:
+			if '--subid=' in arg:
+				subscription_id = arg.split("=")[1]
+			if '--cert=' in arg:
+				certificate_path = arg.split("=")[1]
+		if subscription_id == None or certificate_path ==None:
+			print "ERROR: please check the command line"
+			helpOptions()
+		elif "--masterMachine=" in args[1]:
+			sms	= azureclient.CheckSubscription(subscription_id,certificate_path)
+			master_node = args[1].split("=")[1]
+			terminateCluster(master_node,sms)
+		
+		elif "--machineID=" in args[1]:
+			sms	= azureclient.CheckSubscription(subscription_id,certificate_path)
+			machineid 	= args[1].split("=")[1]
+			azureclient.shutdown_instance(sms,machineid)
+		else:
+			log.info("please check the command")
+			helpOptions()
+	#-------------------------------------------------------------------
+	# Install PBS Torque:
+	#-------------------------------------------------------------------
+	if "--installPBS" ==  args[0]:
+		if "MasterNode=" in args[1]:
+			PBSinstall	= True
+			master_node	= args[1].split("=")[1]
+			install_torque_Server_Compute(master_node,None,None)
+		else:
+			log.info("Please check the master node name")
+	#-------------------------------------------------------------------
+	# Run Command:
+	#-------------------------------------------------------------------
+	if "--run" == args[0]:
+		id = command = inputFiles = outputFiles = owner = None
+		for arg in args:
+			if "--id=" in arg:
+				id = arg.split("=")[1]
+			elif "--command=" in arg:
+				command = arg.split("=")[1]
+			elif "--inputFiles=" in arg:
+				inputFiles = arg.split("=")[1]
+			elif "--outputFiles=" in arg:
+				outputFiles	= arg.split("=")[1]
+			elif "--owner=" in arg:
+				owner = arg.split("=")[1]
+			elif "--domain=" in arg:
+				domain = arg.split("=")[1]
+			else:
+				log.info("Please check your command line")
+		if owner == None:
+			owner = "pbs"
+		if owner == "system":
+			owner = "ehpcuser"
+		if command == None:
+			log.info("Command not found !!! ")
+			sys.exit(1)
+		print command
+		command = command.replace("'",'')
+		result 	= send.sendNewJob(domain, id, owner, command, inputFiles, outputFiles)
+		log.info(result)
+	#-------------------------------------------------------------------
+	# Upload File:
+	#-------------------------------------------------------------------
+	if "--uploadFile" in args[0]:
+		files = []
+		filePath = MachineID = outputDir = None
+		for arg in args:
+			if "--filePath=" in arg:
+				filePath = arg.split("=")[1]
+			elif "--outputDirectory=" in arg:
+				outputDir = arg.split("=")[1]
+			elif "--MachineID=" in arg:
+				MachineID = arg.split("=")[1]
+			else:
+				log.info("Please check your command line")
+		if filePath ==None:
+			log.info("File Path is not found please check your command")
+		elif MachineID == None:
+			log.info("Machine ID is not found please check your command")
+		elif outputDir == None:
+			log.info("Output Directory is not found please check your command")
+		else:
+			owner 	= "ehpcuser"
+			id 		= "1"
+			files.append(filePath)
+			res		=send.UploadFiles(MachineID,id,owner,files,outputDir)
+			log.info(res)
+	#-------------------------------------------------------------------
+	# Run Command FTP:
+	#-------------------------------------------------------------------
+	if "--runcmd" in args[0]:
+		uploadFile = url = downloadFile = False
+		for arg in args:
+		
+			if "--master=" in arg:
+				master_node = arg.split("=")[1]
+			if "--command=" in arg:
+				command = arg.split("=")[1]
+			if "--file=" in arg:
+				uploadFile = arg.split("=")[1]
+			if "--download=" in arg:
+				downloadFile = arg.split("=")[1]
+			if "--url=" in arg:
+				url = arg.split("=")[1]
+		if url:
+			azureclient.run(master_node, command, url,None, None)
+			sys.exit(0)
+		if downloadFile:
+			azureclient.run(master_node,command,None,downloadFile,None)
+			sys.exit(0)
+		if uploadFile:
+			azureclient.run(master_node, command, None, None, uploadFile)
+			sys.exit(0)
+	#-------------------------------------------------------------------
+	# Delete Cluster:
+	#-------------------------------------------------------------------
+	if "--delete" == args[0]:
+		for arg in args:
+			if "--service=" in arg:
+				service = arg.split("=")[1]
+			if "--deployment=" in arg:
+				deployment = arg.split("=")[1]
+			if "--role=" in arg:
+				role = arg.split("=")[1] 
+		sms	= azureclient.CheckSubscription(subscription_id,certificate_path)
+		azureclient.deleteInstances(sms,service,deployment,role)
+	#-------------------------------------------------------------------
+	# Start Machines:
+	#-------------------------------------------------------------------
+	if "--start" == args[0]:
+		sms = azureclient.CheckSubscription(subscription_id,certificate_path)
+		if "--cluster=" in args[1]:
+			for arg in args:
+				if "--masterRole=" in arg:
+					master_node = arg.split("=")[1]
+				if "--service=" in arg:
+					service		= arg.split("=")[1]
+				if "--deployment" in arg:
+					deployment	= arg.split("=")[1]
+				if "--number" in arg:
+					number		= arg.split("=")[1]
+			#startCluster(master_node,service,deployment,number)
+		if "--single" in args[1]:
+			for arg in args:
+				if "--role=" in arg:
+					machine	= arg.split("=")[1]
+				if "--service=" in arg:
+					service	= arg.split("=")[1]
+				if "--deployment=" in arg:
+					deployment = arg.split("=")[1]
+			azureclient.start_instance(sms,service,deployment,machine)
+			log.info("waiting to start the exist instances")
+			azureclient.getRoleStatus(sms,service,deployment,machine)
+	#-------------------------------------------------------------------
+	# Restart Machines:
+	#-------------------------------------------------------------------
+	if "--restart" == args[0]:
+		if "--masterMachine=" in args[1]:
+			master_node = args[1].split("=")[1]
+			restartCluster(master_node)
+		
+		if "--machineID=" in args[1]:
+			machineid	= args[1].split("=")[1]
+			sms = azureclient.CheckSubscription(subscription_id,certificate_path)
+			azureclient.restart_instance(sms,machineid)
+	#-------------------------------------------------------------------
+	# Attache Disks:
+	#-------------------------------------------------------------------
+	if "--attache" == args[0]:
+		for arg in args:
+			if "--dsize=" in arg:
+				dsize = arg.split("=")[1] 
+				log.info("attache in disk "+dsize)
+	#-------------------------------------------------------------------
+	# Virtual Machine status:
+	#-------------------------------------------------------------------
+	if "--vmStatus" in args[0]:
+		for arg in args:
+			vmname = arg.split("=")[1]
+			log.info("Get the status of Virtual machine:"+vmname)
+			Status = azureclient.getVmStatus(vmname)
+			log.info(vmname+": "+Status)
+	#-------------------------------------------------------------------
+	# Cluster nodes status:
+	#-------------------------------------------------------------------
+	if "--clusterStatus" in args[0]:
+		for arg in args:
+			master_node = arg.split("=")[1]
+			getClusterStatus(master_node)
+	#-------------------------------------------------------------------
+	# List virtual machines:
+	#-------------------------------------------------------------------		
+	if "--listVM" in args[0]:
+		for arg in args:
+			vmlist = azureclient.listMachines()
+			print vmlist
+			
+# Get Cluster Status:
+#--------------------
+def getClusterStatus(master_node):
+	nodes	= get_list_nodes(master_node)
+	for node in nodes:
+		node = node.split('.')[0]
+		Status	= azureclient.getVmStatus(node)
+		log.info(node+": "+Status)
+	
+#restarting machines:
+#--------------------
+def restartCluster(vname):
+	sms		= azureclient.CheckSubscription(subscription_id,certificate_path)
+	nodes	= get_list_nodes(vname)
+	for node in nodes:
+		node = node.split(".")[0]
+		log.info("Restarting node: "+ node )
+		azureclient.restart_instance(sms,node)
+# Deleting Cluster:
+#------------------
+def deleteCluster(master_node):
+	sms 	= azureclient.CheckSubscription(subscription_id,certificate_path)
+	nodes 	= get_list_nodes(master_node)
+	for node in nodes:
+		node = node.split(".")[0]
+		log.info("Deleting node: "+ node )
+		azureclient.deleteInstance(sms,node)
+# Terminating Clusters:
+#----------------------
+def terminateCluster(master_node,sms):
+	nodes 	= get_list_nodes(master_node)
+	#print nodes
+	log.info("Start terminating cluster")
+	#print nodes[3].replace("\n",'')
+	#nodes = nodes[1:]
+	#nodes = nodes[::-1]
+	#nodelist = []
+	#for node in nodes: nodelist.append(node.replace("\n",''))
+	#print nodelist
+	#for node in nodelist:
+	#	log.info("Terminating node: "+ node )
+	azureclient.deleteInstances(sms, nodes[1], nodes[1],nodes[1])
+	#azureclient.shutdown_instance(sms,nodelist[-1].replace("\n",''),nodelist[-1].replace("\n",''))
+#def attacheDisks():
+#-------------------
+
+# Start Cluster:
+#---------------
+def startCluster(sms,master_node,service,deployment,number):
+	
+	azureclient.start_instance(sms)
+# list status of cluster nodes:
+#------------------------------
+def list_nodes(master_node):
+	sms 	= azureclient.CheckSubscription(subscription_id,certificate_path)
+	nodes 	= get_list_nodes(master_node)
+	for node in nodes:
+		status 	= azureclient.list_my_nodes(sms,node,node)
+		log.info(node+": "+status)
+
+# Get list of nodes from file:
+#-----------------------------
+def get_list_nodes(master_node):
+	nodes 	= []
+	mainpath = os.path.dirname(os.path.abspath(__file__))
+	f2 = open(mainpath+'/clusters_info/'+master_node+'.cloudapp.net.txt','rb')
+	nodes.append(master_node)
+	for line in f2.readlines():
+		nodes.append(line)
+	return nodes
+
+#ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa
+
+# Generate new RSA key:
+def generateRSAkey(domain,port,id,owner):
+	print "INFO -- Domain: "+ domain
+	command = "ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa"
+	print "INFO -- Command: "+command
+	output  = send.sendNewJob(domain,port,id,owner, 'ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa',None,None)
+	command = "echo `cat ~/.ssh/id_rsa.pub`"
+	print "INFO -- Command: "+command
+	valueRSApublickey = send.sendNewJob(domain,port,id,owner, command,None,None).split("\n")[0]
+	#print valueRSApublickey
+	return valueRSApublickey
+
+# Add Keys to .ssh/authorized keys:
+def authorized_keys(domain,port,id,owner,authorized):
+	print 'INFO -- Domain: '+domain
+	command = 'chmod 666 ~/.ssh/authorized_keys;echo "'+authorized+'" >> ~/.ssh/authorized_keys; chmod 600 ~/.ssh/authorized_keys'
+	print "INFO -- Command: "+command
+	#raise Exception("stop here")
+	send.sendNewJob(domain,port,id,owner, command,None,None)
+	
+# Get Host's ip
+def getHostIp(hostname,domain,port,id,owner):
+	print "INFO -- Domain: "+domain
+	print "INFO -- Port: "+str(port)
+	mainpath = "/home/ehpcuser/ehpcazure"
+	node_ip         = send.sendNewJob(domain,port,id,owner,"python "+mainpath+"/get_node_ip.py",None,None).split("\n")[0]
+	print "INFO -- Node IP: "+node_ip
+	return node_ip
+
+# Add Hosts:
+def addHosts(hosts,domain,port,id,owner):
+	command		='sudo sh -c "echo '+hosts+' >> /etc/hosts"'
+	print "INFO -- Command: "+command 
+	configureKnownHosts = 'alias ssh="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ehpcuser"'
+	send.sendNewJob(domain,port,id,owner, command,None,None)
+
+def knownHosts(domain, port,id,owner):
+	KnownHosts 	= '"ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l ehpcuser"'
+	command	= "sh -c 'alias ssh="+KnownHosts+"'"
+	send.sendNewJob(domain,port,id,owner, command,None,None)
+	print command
+	
+#mount NFS
+def mountnfs(host,domain,port,id,owner):
+	command2 = "sudo mkdir -p /mount/nfs" 
+	print "INFO -- Command: "+command2
+	send.sendNewJob(domain,port,id,owner, command2,None,None)
+	command3 = 'sudo sh -c "mount '+domain.split('.')[0]+':/mount/nfs /mount/nfs"'
+	print "INFO -- Command: "+command3
+	send.sendNewJob(domain,port,id,owner, command3,None,None)
+
+# Configure SSH and NFS:
+#-----------------------
+def setupKeylessSSH(nodes):
+	i = 0
+	authorized = []
+	port 	= "5000"
+	num  	= 1
+	domain 	= nodes[0]+".cloudapp.net" 
+	# Step 1: Generate RSA keys
+	for node in nodes:
+		id = str(i)
+		print "INFO -- Domain:"+domain
+		print "INFO -- Port number:"+port
+		publicKey = generateRSAkey(domain,int(port),id,"ehpcuser")
+		port 	= "5000" 
+		authorized.append(publicKey)
+		port = port[:-1]+str(num)
+		num +=1
+		i +=1
+	# Step 2: Add keys to .ss/authorized_keys:
+	port 	= "5000"
+	num  	= 1
+	domain 	= nodes[0]+".cloudapp.net"
+	authorized_file = '\n'.join(authorized) 
+	for node in nodes:
+		#for author in authorized:
+		authorized_keys(domain,int(port),"1","ehpcuser",authorized_file)
+		port 	= "5000"
+		port = port[:-1]+str(num)
+		num +=1
+	# Step 3: configure /etc/hosts
+	port 	= "5000"
+	num  	= 1
+	domain 	= nodes[0]+".cloudapp.net"
+	hosts 	= []
+	hosts.append("127.0.0.1 localhost")
+	for node in nodes:
+		ip = getHostIp(node,domain,int(port),str(num),"ehpcuser")
+		hosts.append(ip + " "+node)
+		port 	= "5000"
+		port = port[:-1]+str(num)
+		num +=1
+	# Step 4: add hosts to /etc/hosts
+	num  	= 1
+	port 	= "5000"
+	for node in nodes:
+		for host in hosts:
+			addHosts(host,domain,int(port),str(num),"ehpcuser")
+		port 	= "5000"
+		port = port[:-1]+str(num)
+		num +=1
+	# Step 5: disable known host confirmation
+	num  	= 1
+	port 	= "5000"
+	for node in nodes:
+		knownHosts(domain,int(port),str(num),"ehpcuser")
+		port 	= "5000"
+		port = port[:-1]+str(num)
+		num +=1
+	print "INFO -- Nodes have been configured"
+
+	#----------------------------------------------
+	# Configure Network File System on Master Node:
+	#----------------------------------------------
+	
+	print "INFO -- Configuring NFS"
+	port 	= "5000"
+	id 		= "5000"
+	command1 = "sudo sh -c "+'"'+"mkdir -p /mount/nfs"+'"'
+	send.sendNewJob(domain,int(port),id,"ehpcuser", command1,None,None)
+	command2 = "sudo  sh -c "+'"'+"chmod 666 /etc/exports"+'"'
+	send.sendNewJob(domain,int(port),id,"ehpcuser", command2,None,None)
+	code	 = ''
+	nfsHosts = hosts[2:]
+	for host in nfsHosts:
+		code = code + host.split(" ")[1]+"("+'ro,sync,no_root_squash,subtree_check'+') '
+	
+	command3 = "sudo echo "+'"/mount/nfs/ '+code+'"'+' > /etc/exports; sudo umount /dev/sdb1;sudo mount /dev/sdb1 /mount/nfs; sudo /etc/init.d/nfs-kernel-server start'
+	send.sendNewJob(domain,int(port),id,"ehpcuser", command3,None,None)
+	command4= "sudo sh -c "+'"'+"chmod 644 /etc/exports"+'"'
+	print command4
+	send.sendNewJob(domain,int(port),id,"ehpcuser", command4,None,None)
+	
+	# Mount NFS on compute nodes:
+	#----------------------------
+	port 	= "5001"
+	num		= 1
+	for host in nfsHosts:
+		mountnfs(host,domain,int(port),str(num),'ehpcuser')
+		port 	= "5000"
+		port = port[:-1]+str(num)
+		num +=1
+	print nfsHosts
+
+
+# Upload Block Blob Storage to your account:
+# ------------------------------------------
+def upload_block(sms,storage_account,container,filename,region,filepath):
+	# create account storage if not exist:
+	affGrp			= azureclient.createAffinityGrp(sms,storage_account,storage_account,storage_account,region)
+	account_storage	= azureclient.StorageCreate(sms,storage_account,storage_account,storage_account,region,affGrp)
+	# Get Storage account Key:
+	storage_key		= azureclient.getStorageAccountKey(sms,account_storage)
+	print container
+	print filename 
+	print filepath
+	print region 
+	print storage_account
+	print storage_key
+	azureclient.upload_block_blob(container, filename, filepath,storage_account, storage_key)
+
+# Download Block blob storage from your account:
+# ----------------------------------------------
+def download_block(sms,account,container,blob,path):
+	print account
+	print container
+	print blob
+	print path
+	storage_key		= azureclient.getStorageAccountKey(sms,account)
+	print storage_key
+	azureclient.download_block_blob(account,storage_key,container,blob,path)
+
+#################################################################################################################
+#												Main 
+#################################################################################################################					
+if __name__ == "__main__":
+
+	# Configuring Logging:
+	azureclient		= azurehpc.ehpcazure()
+	log = azureclient.logger
+	
+	#sms = CheckSubscription(subscription_id,certificate_path)
+	#blob_service = BlobService(account_name=storage_account, account_key=storage_key)
+	if (len(sys.argv)==1):
+		print "\n"
+		log.info("Loading Help")
+		helpOptions()
+		sys.exit(0)
+	if sys.argv[1] == '--help':
+		print "\n"
+		log.info("Loading Help")
+		helpOptions()
+		sys.exit(0)
+	elif sys.argv[1] == "--create":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--terminate":
+		getOptions(sys.argv[1:])
+	elif "--vmStatus" in sys.argv[1]:
+		getOptions(sys.argv[1:])
+	elif "--listVM" in sys.argv[1]:
+		getOptions(sys.argv[1:])
+	elif "--clusterStatus" in sys.argv[1]:
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--attache":
+		if sys.argv[2] == None:
+			helpOptions()
+			print "\n"
+			log.info("Please Specify the Data Disk size in GB")
+			sys.exit(0)
+		else:
+			log.info("attaching data disk with size "+sys.argv[2]+ "GB ")
+	elif "--list_nodes" in sys.argv[1]:
+		master_node = sys.argv[1].split("=")[1]
+		log.info("listing Cluster Nodes: "+master_node)
+		list_nodes(master_node)
+	elif sys.argv[1] == "--start":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--delete":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--installPBS":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--restart":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--shutdown":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--storageaccount":
+		getOptions(sys.argv[1:])
+	elif "--delete_str_account" in sys.argv[1]:
+		getOptions(sys.argv[1:])
+	elif "--list_storage_accounts" in sys.argv[1]:
+		getOptions(sys.argv[1:])
+	elif "--list_storage_key" in sys.argv[1]:
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--storagecontainer":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--delete_str_container":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--list_str_containers":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--uploadBlob":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--attachDataDisk":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--run":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--uploadFile":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--nfs":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == "--runcmd":
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == '--downloadBlob':
+		getOptions(sys.argv[1:])
+	elif sys.argv[1] == '--downloadblock':
+		getOptions(sys.argv[1:])
+	else:
+		log.info("Try again")
+		helpOptions()
