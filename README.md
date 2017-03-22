@@ -19,7 +19,7 @@ The suffix array is currently the best choice for indexing genomics data, becaus
 This section details steps for installing and running pSACA. Current pSACA version only supports Linux. If you experience difficulty installing or running the software, please contact (Ahmed Metwally: ametwa2@uic.edu).
 
 ### Prerequisites
-To install and run pSACA on local infrastrucrure, you should Install and configure the following on all Nodes:
+To install and run pSACA on local infrastructure, you should Install and configure the following on all Nodes:
 * g++  
 * Install and configure MPI on all Nodes 
 * OpenMP  
@@ -58,12 +58,12 @@ mpirun -np <no_cores> --hostfile <path-to-host-file> <executable> <reference-fil
 -v    Verbose
 -c    Clean fasta file.
 -r    Check correctness of the output file.
--o    Outputfile. The default is called fSA.txt and found in the same  directory. The output file is a binary file which contains the suffix array of the input file. 
+-o    Outputfile. The default is called fSA.txt and found in the same directory. The output file is a binary file which contains the suffix array of the input file. 
 ```
 
 
 #### Example:
-* If you want to run on local machine:
+* If you want to run on a local machine:
 ```
 mpirun -np 4 ./FAK  Hgchr22.fa -w 4 -v -o Hgchr22_SA
 ```
@@ -73,7 +73,7 @@ mpirun -np 4 ./FAK  Hgchr22.fa -w 4 -v -o Hgchr22_SA
 mpirun -np 16 --hostfile MPI.hosts ./FAK  Hgchr22.fa -w 4 -v -o Hgchr22_SA
 ```
 
-* To run the cluster over AWS, uust download cloudSACA_AWS then follow with its README file and it would configure the MPI cluster for you very easily.
+* To run the cluster over AWS, just download cloudSACA_AWS then follow with its README file to onfigure the MPI cluster.
 ```
 Use the AWS image (eu-west-1): ami-a5df1dd2
 ```
